@@ -209,22 +209,98 @@ class BrandAssets
     }
 
     /**
-     * Font for the chamber name. The bundled Noto file only carries Bengali
-     * glyphs, so Latin names use DejaVu from the system (shipped with the image).
+     * Latin font for the chamber name (the image ships fonts-dejavu-core).
      */
-    private static function labelFont(string $label): ?string
+    private static function latinFont(): ?string
     {
-        $candidates = preg_match('/\p{Bengali}/u', $label) === 1
-            ? [public_path('fonts/NotoSansBengali-Bold.ttf'), '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf']
-            : ['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', public_path('fonts/DejaVuSans-Bold.ttf')];
-
-        foreach ($candidates as $candidate) {
+        foreach ([
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+            public_path('fonts/DejaVuSans-Bold.ttf'),
+            '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
+        ] as $candidate) {
             if (is_file($candidate)) {
                 return $candidate;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Bengali font for the chamber name; the bundled file wins so the image is
+     * self-contained even when the host ships no Bengali font.
+     */
+    private static function bengaliFont(): ?string
+    {
+        foreach ([
+            public_path('fonts/NotoSansBengali-Bold.ttf'),
+            '/usr/share/fonts/truetype/noto/NotoSansBengali-Bold.ttf',
+        ] as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Split the chamber name into script runs, because no single bundled font
+     * covers both Latin and Bengali glyphs. A mixed name therefore alternates
+     * between the DejaVu and Noto runs instead of drawing empty boxes.
+     *
+     * @return list<array{text: string, font: string}>
+     */
+    private static function labelRuns(string $label): array
+    {
+        $latin = self::latinFont();
+        $bengali = self::bengaliFont();
+
+        $runs = [];
+
+        foreach (mb_str_split($label) as $character) {
+            $isBengali = preg_match('/\p{Bengali}/u', $character) === 1;
+            $font = $isBengali ? ($bengali ?? $latin) : ($latin ?? $bengali);
+
+            if ($font === null) {
+                return [];
+            }
+
+            $last = count($runs) - 1;
+
+            if ($last >= 0 && $runs[$last]['font'] === $font) {
+                $runs[$last]['text'] .= $character;
+            } else {
+                $runs[] = ['text' => $character, 'font' => $font];
+            }
+        }
+
+        return $runs;
+    }
+
+    /**
+     * Width of one text run, measured by ImageMagick without writing a file.
+     */
+    private static function measureWithIm(string $binary, string $font, int $fontSize, string $text): int
+    {
+        try {
+            $process = new Process([
+                $binary, '-font', $font, '-pointsize', (string) $fontSize,
+                '-background', 'none', 'label:'.$text, '-format', '%w', 'info:',
+            ]);
+            $process->setTimeout(10);
+            $process->run();
+
+            $width = (int) trim($process->getOutput());
+
+            if ($process->isSuccessful() && $width > 0) {
+                return $width;
+            }
+        } catch (Throwable) {
+            // Fall back to the estimate below.
+        }
+
+        return (int) round(mb_strlen($text) * $fontSize * self::LABEL_ADVANCE);
     }
 
     /**
@@ -354,13 +430,22 @@ class BrandAssets
                     '-composite',
                 ];
 
-                $font = $layout['label'] === null ? null : self::labelFont($layout['label']);
+                $runs = $layout['label'] === null ? [] : self::labelRuns($layout['label']);
 
-                if ($font !== null) {
-                    $command = [...$command, '-font', $font, '-fill', self::LABEL_COLOR,
-                        '-pointsize', (string) $layout['labelSize'],
-                        '-gravity', 'north',
-                        '-annotate', '+0+'.$layout['labelTop'], $layout['label']];
+                if ($runs !== []) {
+                    $widths = array_map(
+                        fn (array $run): int => self::measureWithIm($binary, $run['font'], $layout['labelSize'], $run['text']),
+                        $runs,
+                    );
+                    $left = (int) max(0, round(($canvasWidth - array_sum($widths)) / 2));
+
+                    foreach ($runs as $index => $run) {
+                        $command = [...$command, '-font', $run['font'], '-fill', self::LABEL_COLOR,
+                            '-pointsize', (string) $layout['labelSize'],
+                            '-gravity', 'northwest',
+                            '-annotate', '+'.$left.'+'.$layout['labelTop'], $run['text']];
+                        $left += $widths[$index];
+                    }
                 }
             }
 
@@ -432,7 +517,7 @@ class BrandAssets
         );
 
         if (($layout['label'] ?? null) !== null) {
-            self::drawLabelWithGd($canvas, $layout['label'], $layout['labelSize'], $layout['labelTop'], $canvasWidth);
+            self::drawLabelWithGd($canvas, self::labelRuns($layout['label']), $layout['labelSize'], $layout['labelTop'], $canvasWidth);
         }
 
         imagepng($canvas, $target, 6);
@@ -444,47 +529,59 @@ class BrandAssets
      * Draw the chamber name with FreeType so it stays crisp at every splash size.
      * Without FreeType the splash still renders, just without the label.
      */
-    private static function drawLabelWithGd(\GdImage $canvas, string $label, int $fontSize, int $top, int $canvasWidth): void
+    /**
+     * @param  list<array{text: string, font: string}>  $runs
+     */
+    private static function drawLabelWithGd(\GdImage $canvas, array $runs, int $fontSize, int $top, int $canvasWidth): void
     {
-        if (! function_exists('imagettftext')) {
-            return;
-        }
-
-        $font = self::labelFont($label);
-
-        if ($font === null) {
+        if ($runs === [] || ! function_exists('imagettfbbox') || ! function_exists('imagettftext')) {
             return;
         }
 
         $maxWidth = (int) round($canvasWidth * 0.9);
+        $size = $fontSize;
 
-        for ($size = $fontSize; $size > 12; $size -= 2) {
-            $box = imagettfbbox($size, 0, $font, $label);
+        // Shrink until every run fits on one line, then keep the tallest ascent
+        // shared so the scripts sit on the same baseline.
+        for (; $size > 12; $size -= 2) {
+            $total = 0;
 
-            if ($box !== false && ($box[2] - $box[0]) <= $maxWidth) {
+            foreach ($runs as $run) {
+                $box = imagettfbbox($size, 0, $run['font'], $run['text']);
+
+                if ($box === false) {
+                    return;
+                }
+
+                $total += $box[2] - $box[0];
+            }
+
+            if ($total <= $maxWidth) {
                 break;
             }
         }
 
-        $box = imagettfbbox($size, 0, $font, $label);
+        $widths = [];
+        $ascent = 0;
 
-        if ($box === false) {
-            return;
+        foreach ($runs as $index => $run) {
+            $box = imagettfbbox($size, 0, $run['font'], $run['text']);
+
+            if ($box === false) {
+                return;
+            }
+
+            $widths[$index] = $box[2] - $box[0];
+            $ascent = max($ascent, -$box[7]);
         }
 
-        $textWidth = $box[2] - $box[0];
         $colour = imagecolorallocate($canvas, 0x11, 0x18, 0x27);
+        $left = (int) max(0, round(($canvasWidth - array_sum($widths)) / 2));
 
-        imagettftext(
-            $canvas,
-            $size,
-            0,
-            (int) max(0, round(($canvasWidth - $textWidth) / 2)),
-            $top - $box[7],
-            $colour,
-            $font,
-            $label,
-        );
+        foreach ($runs as $index => $run) {
+            imagettftext($canvas, $size, 0, $left, (int) round($top + $ascent), $colour, $run['font'], $run['text']);
+            $left += $widths[$index];
+        }
     }
 
     private static function binary(): ?string
