@@ -55,6 +55,8 @@ php artisan test --compact tests/Feature/HpmsWorkflowTest.php
 | Validation | Invalid report dates produce validation errors. |
 | Dashboard | Live sale and purchase data appear in the rendered dashboard. |
 | Pages | Every primary owner screen renders: lists, details, create/edit forms, categories, adjustments, all report pages, settings, and the health endpoint. |
+| Branding | Owner uploads a chamber logo, sees it in navigation, and can remove it with the stored file deleted. |
+| Profile | Owner uploads an administration profile picture, sees it in the sidebar, and can remove it with the stored file deleted. |
 
 A representative accounting fixture:
 
@@ -91,6 +93,8 @@ Automated tests are necessary but not a full UX review. Before handoff, verify:
 - [ ] Print a report; confirm navigation/actions are hidden and tables fit.
 - [ ] Change chamber and owner name; confirm the sidebar owner name updates.
 - [ ] Change password; sign in again with the new password.
+- [ ] Upload a chamber logo, confirm it appears in navigation, then remove it and confirm the monogram returns.
+- [ ] Upload an administration profile picture, confirm it appears in the sidebar owner block, then remove it and confirm the initial returns.
 - [ ] Download the business-data ZIP; inspect that credentials/session data are absent.
 - [ ] Run `/health` with the database up and down.
 - [ ] Check browser console for JavaScript errors on charts and line-item forms.
@@ -104,6 +108,7 @@ Automated tests are necessary but not a full UX review. Before handoff, verify:
 | Config changes ignored | `php artisan optimize:clear`. |
 | Test hits MySQL | Confirm `phpunit.xml` env values and no cached config. |
 | CSS build errors | Run `npm run build` directly; ensure Node dependencies are current. |
+| Logo appears broken | Run `php artisan storage:link` and confirm `public/storage` exists. |
 | PDF test fails | Confirm `barryvdh/laravel-dompdf` is installed and `storage/` is writable. |
 | XLSX test fails | Check the temporary file directory and `App\Support\SimpleXlsxWriter`. |
 

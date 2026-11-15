@@ -20,7 +20,7 @@ A purchase or sale header has many line items. A line item belongs to one medici
 
 ### `users`
 
-Laravel's standard owner table: `id`, `name`, unique `email`, `email_verified_at`, hashed `password`, `remember_token`, timestamps. There is no role column because the application has exactly one owner.
+Laravel's standard owner table: `id`, `name`, unique `email`, `email_verified_at`, hashed `password`, nullable `avatar_path` (relative public-disk path under `avatars/`), `remember_token`, timestamps. There is no role column because the application has exactly one owner.
 
 ### `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`
 
@@ -180,7 +180,7 @@ This is an append-only ledger. Business operations write a movement for every st
 | `value` | text nullable | string value |
 | timestamps | | |
 
-Seeded keys: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_stock_default`, `report_default_days`. `owner_name` is written when the owner saves settings.
+Seeded keys: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_stock_default`, `report_default_days`. `owner_name` is written when the owner saves settings. `chamber_logo` stores the relative public-disk path (for example `branding/abc123.png`) when a logo is uploaded; the file itself lives under `storage/app/public/branding`.
 
 ## Quantity and money decisions
 

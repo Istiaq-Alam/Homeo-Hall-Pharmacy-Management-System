@@ -17,7 +17,9 @@ Homeo-Hall is a private, single-owner Laravel application for a homeopathic cham
 - Dashboard cards, current-month summary, recent activity, and four live Chart.js charts.
 - Daily, monthly, yearly, custom-range, inventory, medicine-wise sales, expense, low-stock, and stock-movement reports.
 - PDF, XLSX, CSV, and browser-print exports that keep the selected date range.
-- Settings for chamber name, owner name, currency, timezone, low-stock default, report period, and password.
+- Settings for chamber name, owner name, chamber logo and administration profile-picture upload/removal, currency, timezone, low-stock default, report period, and password.
+- Uploaded chamber logo displayed in the application navigation, with the Homeo-Hall monogram as fallback.
+- Owner profile picture displayed in the sidebar, with the owner's initial as fallback.
 - Business-data ZIP export and documented MySQL backup/restore process.
 - Responsive, print-friendly interface based on [`DESIGN.md`](DESIGN.md).
 
@@ -66,6 +68,7 @@ Install frontend dependencies, migrate, and provision the owner:
 ```bash
 npm install
 php artisan migrate
+php artisan storage:link
 ```
 
 Set **both** owner variables in `.env` before seeding:
@@ -176,6 +179,7 @@ No deployment is performed by this repository. Free hosts may suspend services o
 | Login loops back | Clear config and sessions: `php artisan optimize:clear`. |
 | Owner seeding does nothing | Set both `OWNER_EMAIL` and `OWNER_PASSWORD`; run `php artisan db:seed`. |
 | Assets missing | Run `npm run build`; ensure `public/build` exists. |
+| Uploaded logo or profile picture missing | Run `php artisan storage:link`; ensure `storage/app/public` is writable. |
 | Date-range report is empty | Use the transaction's actual date; the range is inclusive of both full days. |
 | Export fails | Check `storage/` and PHP memory; PDF and XLSX are generated on demand. |
 | MySQL error on migration | Confirm MySQL 8, utf8mb4, and a database name without hyphens unless quoted. |

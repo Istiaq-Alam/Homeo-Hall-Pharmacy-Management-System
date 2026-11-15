@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Models\ExpenseCategory;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\TransactionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PageSmokeTest extends TestCase
@@ -81,5 +84,81 @@ class PageSmokeTest extends TestCase
         }
 
         $this->get('/health')->assertOk()->assertJson(['status' => 'ok', 'database' => 'ok']);
+    }
+
+    public function test_owner_can_upload_and_remove_a_chamber_logo(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create();
+        $logo = UploadedFile::fake()->createWithContent(
+            'chamber-logo.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='),
+        );
+        $settings = [
+            'chamber_name' => 'Homeo-Hall',
+            'owner_name' => 'Administrator',
+            'currency' => 'BDT',
+            'currency_symbol' => '৳',
+            'timezone' => 'Asia/Dhaka',
+            'low_stock_default' => 5,
+            'report_default_days' => 30,
+        ];
+
+        $this->actingAs($owner)->put('/settings', [...$settings, 'chamber_logo' => $logo])->assertRedirect();
+
+        $path = Setting::query()->where('key', 'chamber_logo')->value('value');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+        $this->actingAs($owner)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('brand-logo', false)
+            ->assertSee($path, false);
+
+        $this->actingAs($owner)->put('/settings', [...$settings, 'remove_logo' => 1])->assertRedirect();
+
+        $this->assertDatabaseMissing('settings', ['key' => 'chamber_logo']);
+        Storage::disk('public')->assertMissing($path);
+        $this->actingAs($owner)->get('/dashboard')
+            ->assertOk()
+            ->assertDontSee('brand-logo', false);
+    }
+
+    public function test_owner_can_upload_and_remove_a_profile_picture(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create(['name' => 'Administrator']);
+        $picture = UploadedFile::fake()->createWithContent(
+            'administrator.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='),
+        );
+        $settings = [
+            'chamber_name' => 'Homeo-Hall',
+            'owner_name' => 'Administrator',
+            'currency' => 'BDT',
+            'currency_symbol' => '৳',
+            'timezone' => 'Asia/Dhaka',
+            'low_stock_default' => 5,
+            'report_default_days' => 30,
+        ];
+
+        $this->actingAs($owner)->put('/settings', [...$settings, 'owner_avatar' => $picture])->assertRedirect();
+
+        $owner->refresh();
+        $path = $owner->avatar_path;
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+        $this->actingAs($owner)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('avatar-photo', false)
+            ->assertSee($path, false);
+
+        $this->actingAs($owner)->put('/settings', [...$settings, 'remove_avatar' => 1])->assertRedirect();
+
+        $owner->refresh();
+        $this->assertNull($owner->avatar_path);
+        Storage::disk('public')->assertMissing($path);
+        $this->actingAs($owner)->get('/dashboard')
+            ->assertOk()
+            ->assertDontSee('avatar-photo', false);
     }
 }

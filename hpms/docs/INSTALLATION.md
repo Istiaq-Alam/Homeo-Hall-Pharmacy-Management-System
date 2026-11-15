@@ -73,7 +73,10 @@ Use a database name without a hyphen. If you must use one, quote it consistently
 ```bash
 php artisan migrate
 php artisan db:seed
+php artisan storage:link
 ```
+
+`storage:link` is required for the chamber logo upload to be publicly served from `public/storage`.
 
 The seeder:
 
@@ -129,11 +132,13 @@ php artisan test --compact
 7. Run the seeder once to provision the owner.
 8. Point the document root to `public/`.
 9. Ensure `storage/` and `bootstrap/cache/` are writable by the web user.
-10. Configure HTTPS and secure cookies.
-11. Add a process that runs `php artisan queue:work` only if a queue-dependent feature is added later; the current core app records synchronously.
-12. Verify `/health` returns HTTP 200 with both statuses `ok`.
-13. Verify `/login` loads and a wrong password is throttled after repeated attempts.
-14. Confirm database and file backups are scheduled and test a restore.
+10. Run `php artisan storage:link` so uploaded chamber logos are publicly available.
+11. Configure HTTPS and secure cookies.
+12. Add a process that runs `php artisan queue:work` only if a queue-dependent feature is added later; the current core app records synchronously.
+13. Verify `/health` returns HTTP 200 with both statuses `ok`.
+14. Verify `/login` loads and a wrong password is throttled after repeated attempts.
+15. Upload a chamber logo and administration profile picture in Settings; confirm both appear in navigation.
+16. Confirm database and file backups are scheduled and test a restore, including `storage/app/public/branding` and `storage/app/public/avatars`.
 
 ### Example Nginx location
 
@@ -198,6 +203,6 @@ The Settings data export is a CSV ZIP for inspection/migration. It omits credent
 ## 12. Known installation limitations
 
 - XLSX uses the built-in single-sheet writer rather than Laravel Excel/PhpSpreadsheet, due to the missing `ext-gd` requirement.
-- Free hosting may use ephemeral filesystems. MySQL data, uploaded exports, and the database dump must be stored on persistent storage or externally.
+- Free hosting may use ephemeral filesystems. MySQL data, uploaded images, exports, and the database dump must be stored on persistent storage or externally. Uploaded logos live under `storage/app/public/branding`; profile pictures live under `storage/app/public/avatars`.
 - The app has one owner and no registration; provisioning is intentionally an operator action.
 - Node and Composer lock files should be committed for reproducible builds.

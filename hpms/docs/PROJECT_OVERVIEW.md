@@ -70,6 +70,8 @@ There is exactly one authenticated owner. The owner account is provisioned from 
 ### Settings and backup
 
 - Chamber name, owner name, BDT currency and symbol, Asia/Dhaka timezone, default low-stock level, and default report period.
+- Chamber logo upload (PNG/JPG/WebP, up to 2 MB) with preview, removal, and fallback monogram. The logo appears in the application navigation.
+- Administration profile-picture upload (PNG/JPG/WebP, up to 2 MB) with preview, removal, and an initial-based fallback. The picture appears in the sidebar owner block.
 - Changing the owner name updates the signed-in owner record so navigation and reports stay consistent.
 - Password change with current-password verification.
 - Authenticated business-data ZIP export; full recovery uses `mysqldump` as documented in the README.

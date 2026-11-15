@@ -10,7 +10,7 @@
 <body class="bg-parchment text-ink antialiased" x-data="{ menuOpen: false }">
     <div class="min-h-screen lg:flex">
         <aside id="sidebar" class="sidebar" :class="menuOpen ? 'sidebar-open' : ''">
-            <a href="{{ route('dashboard') }}" class="brand"><span class="brand-mark">H</span><span><strong>{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }}</strong><small>Chamber management</small></span></a>
+            <a href="{{ route('dashboard') }}" class="brand">@if(! empty($appSettings['chamber_logo_url']))<img class="brand-logo" src="{{ $appSettings['chamber_logo_url'] }}" alt="{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }} logo">@else<span class="brand-mark">H</span>@endif<span><strong>{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }}</strong><small>Chamber management</small></span></a>
             <nav class="nav-list" aria-label="Main navigation">
                 <a href="{{ route('dashboard') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('dashboard') ? 'nav-active' : '' }}"><span><x-icon name="dashboard" /></span>Dashboard</a>
                 <a href="{{ route('medicines.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('medicines.*') ? 'nav-active' : '' }}"><span><x-icon name="medicine" /></span>Medicines</a>
@@ -20,7 +20,7 @@
                 <a href="{{ route('reports.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('reports.*') ? 'nav-active' : '' }}"><span><x-icon name="report" /></span>Reports</a>
                 <a href="{{ route('settings.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('settings.*') ? 'nav-active' : '' }}"><span><x-icon name="settings" /></span>Settings</a>
             </nav>
-            <div class="sidebar-bottom"><div class="owner-pill"><span class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span><span><strong>{{ auth()->user()->name }}</strong><small>Chamber owner</small></span></div><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form></div>
+            <div class="sidebar-bottom"><div class="owner-pill">@if(auth()->user()->avatar_url)<img class="avatar avatar-photo" src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }} profile picture">@else<span class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>@endif<span><strong>{{ auth()->user()->name }}</strong><small>Chamber owner</small></span></div><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form></div>
         </aside>
         <div class="sidebar-backdrop" x-show="menuOpen" x-cloak @click="menuOpen = false" aria-hidden="true"></div>
         <div class="flex-1 min-w-0">
