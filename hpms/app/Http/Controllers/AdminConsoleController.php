@@ -11,10 +11,10 @@ use App\Models\SaleItem;
 use App\Models\SecurityLog;
 use App\Models\User;
 use App\Support\ChamberContext;
+use App\Support\MediaStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -137,7 +137,7 @@ class AdminConsoleController extends Controller
 
         $oldAvatar = $admin->avatar_path;
         if ($request->hasFile('profile_image')) {
-            $newAvatar = $request->file('profile_image')->store('avatars', 'public');
+            $newAvatar = $request->file('profile_image')->store(MediaStorage::AVATAR_DIRECTORY, config('filesystems.uploads'));
             if (! $newAvatar) {
                 return back()->withErrors(['profile_image' => __('admin.image_store_error')])->withInput();
             }
@@ -154,8 +154,8 @@ class AdminConsoleController extends Controller
         }
         $admin->save();
 
-        if ($oldAvatar && $oldAvatar !== $admin->avatar_path && str_starts_with($oldAvatar, 'avatars/')) {
-            Storage::disk('public')->delete($oldAvatar);
+        if ($oldAvatar && $oldAvatar !== $admin->avatar_path && str_starts_with($oldAvatar, MediaStorage::AVATAR_DIRECTORY.'/')) {
+            MediaStorage::disk()->delete($oldAvatar);
         }
         if (! empty($data['password'])) {
             $request->session()->regenerate();

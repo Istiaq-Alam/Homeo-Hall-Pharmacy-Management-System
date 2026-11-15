@@ -7,6 +7,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
@@ -16,19 +17,8 @@ use App\Http\Controllers\ThemeController;
 use App\Models\Setting;
 use App\Support\BrandAssets;
 use App\Support\ChamberContext;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-
-Route::get('/health', function () {
-    try {
-        DB::select('select 1');
-
-        return response()->json(['status' => 'ok', 'database' => 'ok']);
-    } catch (Throwable) {
-        return response()->json(['status' => 'unavailable', 'database' => 'unavailable'], 503);
-    }
-})->name('health');
 
 Route::get('/manifest.webmanifest', function () {
     $name = 'Homeo-Hall';
@@ -89,6 +79,10 @@ Route::get('/manifest.webmanifest', function () {
         ->header('Content-Type', 'application/manifest+json')
         ->header('Cache-Control', 'private, no-cache, must-revalidate');
 })->name('manifest');
+
+Route::get('/media/{path}', [MediaController::class, 'show'])
+    ->where('path', '.*')
+    ->name('media.show');
 
 Route::post('/language', [LanguageController::class, 'store'])->name('language.update');
 

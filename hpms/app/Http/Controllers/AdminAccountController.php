@@ -8,10 +8,10 @@ use App\Models\SecurityLog;
 use App\Models\User;
 use App\Services\ChamberProvisioner;
 use App\Support\ChamberContext;
+use App\Support\MediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminAccountController extends Controller
@@ -148,7 +148,7 @@ class AdminAccountController extends Controller
     private function deleteImage(?string $path, string $directory): void
     {
         if ($path && str_starts_with($path, $directory)) {
-            Storage::disk('public')->delete($path);
+            MediaStorage::disk()->delete($path);
         }
     }
 }

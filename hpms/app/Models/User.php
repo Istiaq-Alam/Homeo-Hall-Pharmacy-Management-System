@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
+use App\Support\MediaStorage;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path', 'theme', 'locale'])]
 #[Hidden(['password', 'remember_token'])]
@@ -38,7 +38,7 @@ class User extends Authenticatable
     protected function avatarUrl(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->avatar_path
-            ? Storage::disk('public')->url($this->avatar_path)
+            ? MediaStorage::url($this->avatar_path)
             : null);
     }
 

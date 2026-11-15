@@ -2,8 +2,10 @@
 
 namespace App\Support;
 
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 use Throwable;
 
@@ -89,17 +91,23 @@ class BrandAssets
         }
 
         $directory = trim($directory, '/');
-        $disk = Storage::disk('public');
-        $disk->makeDirectory($directory.'/splash');
+        $disk = MediaStorage::disk();
+        $workspace = storage_path('app/brand-assets/'.Str::random(16));
+        $uploaded = [];
+
+        File::ensureDirectoryExists($workspace.'/splash');
 
         try {
             $assets = [];
 
             foreach (self::SQUARE as $key => $spec) {
                 $relative = $directory.'/'.$spec['file'];
+                $local = $workspace.'/'.$spec['file'];
                 $inner = max(1, (int) round($spec['size'] * $spec['ratio']));
 
-                self::render($source, $disk->path($relative), $spec['size'], $spec['size'], $inner, $inner);
+                self::render($source, $local, $spec['size'], $spec['size'], $inner, $inner);
+                self::upload($disk, $local, $relative);
+                $uploaded[] = $relative;
                 $assets[$key] = $relative;
             }
 
@@ -109,20 +117,52 @@ class BrandAssets
                 $pixelWidth = $width * $dpr;
                 $pixelHeight = $height * $dpr;
                 $relative = $directory.'/splash/'.$pixelWidth.'x'.$pixelHeight.'.png';
+                $local = $workspace.'/splash/'.$pixelWidth.'x'.$pixelHeight.'.png';
 
                 [$boxWidth, $boxHeight] = $width > $height
                     ? [(int) round($pixelWidth * 0.5), (int) round($pixelHeight * 0.45)]
                     : [(int) round($pixelWidth * 0.48), (int) round($pixelHeight * 0.3)];
 
-                self::render($source, $disk->path($relative), $pixelWidth, $pixelHeight, $boxWidth, $boxHeight);
+                self::render($source, $local, $pixelWidth, $pixelHeight, $boxWidth, $boxHeight);
+                self::upload($disk, $local, $relative);
+                $uploaded[] = $relative;
                 $assets['splash'][$pixelWidth.'x'.$pixelHeight] = $relative;
             }
 
             return $assets;
         } catch (Throwable $exception) {
+            foreach ($uploaded as $relative) {
+                try {
+                    $disk->delete($relative);
+                } catch (Throwable) {
+                    // Best-effort cleanup; the caller drops the asset setting anyway.
+                }
+            }
+
             Log::warning('Chamber logo saved without derived icons: '.$exception->getMessage());
 
             return null;
+        } finally {
+            File::deleteDirectory($workspace);
+        }
+    }
+
+    private static function upload(FilesystemAdapter $disk, string $local, string $relative): void
+    {
+        $stream = fopen($local, 'rb');
+
+        if ($stream === false) {
+            throw new \RuntimeException('Could not read '.basename($local).'.');
+        }
+
+        try {
+            if (! $disk->put($relative, $stream)) {
+                throw new \RuntimeException('Could not store '.$relative.' on the uploads disk.');
+            }
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
         }
     }
 
@@ -138,7 +178,7 @@ class BrandAssets
 
         foreach ($assets as $key => $value) {
             if (is_string($value)) {
-                $urls[$key] = Storage::disk('public')->url($value);
+                $urls[$key] = MediaStorage::url($value);
             }
         }
 
@@ -147,7 +187,7 @@ class BrandAssets
 
             foreach ($assets['splash'] as $size => $path) {
                 if (is_string($path)) {
-                    $urls['splash'][$size] = Storage::disk('public')->url($path);
+                    $urls['splash'][$size] = MediaStorage::url($path);
                 }
             }
         }
@@ -161,7 +201,7 @@ class BrandAssets
             return;
         }
 
-        $disk = Storage::disk('public');
+        $disk = MediaStorage::disk();
         $directory = dirname($logoPath);
 
         if ($directory === 'branding') {

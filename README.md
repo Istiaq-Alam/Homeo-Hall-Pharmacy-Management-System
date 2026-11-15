@@ -152,21 +152,40 @@ php artisan optimize:clear
 - Owner credentials are never hardcoded. Provisioning happens only through environment variables.
 - The session and all business data are restricted to the authenticated owner.
 
-## Deployment notes
+## Deployment (Render Free + TiDB Cloud Starter + Cloudflare R2)
 
-Do not deploy this repository with local credentials. When a host is chosen:
+A Docker/Render configuration is included but **nothing is deployed automatically** and no cloud resources are created by this repository. Target architecture:
 
-1. Create a MySQL 8 database and set all `DB_*` values.
-2. Set `APP_ENV=production`, `APP_DEBUG=false`, a real `APP_URL`, and a fresh `APP_KEY`.
-3. Run `composer install --no-dev --optimize-autoloader`.
-4. Run `npm ci && npm run build`.
-5. Run `php artisan migrate --force`, then provision the owner once.
-6. Point the web server document root at `public/`.
-7. Ensure `storage/` and `bootstrap/cache/` are writable.
-8. Terminate TLS and enable secure session cookies.
-9. Confirm `/health` and `/login` respond.
+- **Render Free** Docker Web Service (`homeo-hall`), Apache + PHP 8.4, health check `/up`.
+- **TiDB Cloud Starter** (MySQL protocol, port 4000, TLS) for all relational data.
+- **Cloudflare R2** (private bucket) for permanent uploads; the app serves them through `/media/{path}` instead of a public bucket or `public/storage`.
+- Sessions and cache use database tables, so restarts do not log users out. Queues stay `sync` (no worker on Free).
 
-No deployment is performed by this repository. Free hosts may suspend services or provide non-persistent disks/databases; confirm persistence, backups, and database limits before relying on one.
+Key files: [`Dockerfile`](Dockerfile), [`docker/`](docker), [`render.yaml`](render.yaml), [`.env.production.example`](.env.production.example).
+
+Order of work (details and exact commands in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md)):
+
+1. Push the repository to GitHub `main`.
+2. Create the TiDB Starter instance and `homeo_hall` database.
+3. Create the private R2 bucket and an Object Read & Write API token.
+4. Back up local MySQL and verify the dump.
+5. Import the dump into TiDB and verify counts, totals, Unicode and locking.
+6. Dry-run and run `php artisan uploads:migrate --from=public --to=s3`.
+7. Create the Render service, fill the environment variables, and deploy.
+8. Update `APP_URL`, test login/reports/uploads, and configure backups.
+
+Free-tier realities: Render sleeps after ~15 minutes idle (~1 minute cold start), has 512 MB RAM and no shell/persistent disk; TiDB Starter has a monthly RU quota and blocks new connections when exhausted; uploads must live in R2. Render does not recommend Free for production. Cloud checks are **not run** in this repository — see the audit for what remains to be verified.
+
+Documentation:
+
+- [`DEPLOYMENT_AUDIT.md`](DEPLOYMENT_AUDIT.md) — versions, compatibility findings, risks.
+- [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) — step-by-step manual deployment.
+- [`DATABASE_MIGRATION_GUIDE.md`](DATABASE_MIGRATION_GUIDE.md) — backup, import and verification.
+- [`FILE_STORAGE_MIGRATION_GUIDE.md`](FILE_STORAGE_MIGRATION_GUIDE.md) — moving uploads to R2.
+- [`BACKUP_AND_RESTORE.md`](BACKUP_AND_RESTORE.md) — production backups and restore drills.
+- [`DEPLOYMENT_TROUBLESHOOTING.md`](DEPLOYMENT_TROUBLESHOOTING.md) — 500/502, TLS, R2, sessions, PDFs.
+
+Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets, and never run `migrate:fresh`, `db:wipe`, or an automatic rollback against production.
 
 ## Troubleshooting
 
@@ -185,8 +204,10 @@ No deployment is performed by this repository. Free hosts may suspend services o
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
 - [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
 - [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
-- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — setup and deployment checklist.
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — local setup and server checklist.
 - [`docs/TESTING.md`](docs/TESTING.md) — test coverage and manual QA.
+- [`DEPLOYMENT_AUDIT.md`](DEPLOYMENT_AUDIT.md) — deployment audit and compatibility findings.
+- [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) — Render, TiDB and R2 setup.
 
 ## Limitations
 

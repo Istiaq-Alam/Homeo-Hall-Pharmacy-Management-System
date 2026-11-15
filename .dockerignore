@@ -1,0 +1,47 @@
+# Git and local metadata
+.git
+.gitignore
+**/.git
+**/.github
+
+# Local environment and secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Installed dependencies and build output
+**/node_modules
+**/vendor
+hpms/public/build
+hpms/public/hot
+hpms/public/storage
+
+# Local runtime data
+hpms/storage/app/private/*
+hpms/storage/app/public/*
+hpms/storage/app/pdf/*
+hpms/storage/framework/cache/data/*
+hpms/storage/framework/sessions/*
+hpms/storage/framework/views/*
+hpms/storage/logs/*
+hpms/bootstrap/cache/*.php
+**/*.log
+**/*.sqlite
+**/*.zip
+
+# Local editor, agent and test files not needed at runtime
+hpms/.agents
+hpms/.claude
+hpms/.codex
+hpms/.cursor
+hpms/.idea
+hpms/.vscode
+hpms/.mcp.json
+hpms/.phpunit.cache
+hpms/tests
+hpms/phpunit.xml
+hpms/docs
+hpms/AGENTS.md
+hpms/CLAUDE.md
+hpms/DESIGN.md
+hpms/task.md

@@ -73,10 +73,9 @@ Use a database name without a hyphen. If you must use one, quote it consistently
 ```bash
 php artisan migrate
 php artisan db:seed
-php artisan storage:link
 ```
 
-`storage:link` is required for the chamber logo upload to be publicly served from `public/storage`.
+Uploaded logos and avatars are served through the application's `/media/{path}` route, so `php artisan storage:link` is no longer required. Local development keeps using the `public` disk (`UPLOADS_DISK=public`); production can point `UPLOADS_DISK` at a private Cloudflare R2 bucket. See [`DEPLOYMENT_GUIDE.md`](../../DEPLOYMENT_GUIDE.md).
 
 The seeder:
 
@@ -132,14 +131,14 @@ php artisan test --compact
 7. Run the seeder once to provision the owner.
 8. Point the document root to `public/`.
 9. Ensure `storage/` and `bootstrap/cache/` are writable by the web user.
-10. Run `php artisan storage:link` so uploaded chamber logos are publicly available.
+10. Keep `UPLOADS_DISK=public` for a single server, or set `UPLOADS_DISK=s3` with R2 credentials on ephemeral hosts; no `storage:link` is needed either way.
 11. Configure HTTPS and secure cookies.
 12. Add a process that runs `php artisan queue:work` only if a queue-dependent feature is added later; the current core app records synchronously.
 13. Verify `/health` returns HTTP 200 with both statuses `ok`.
 14. Verify `/login` loads and a wrong password is throttled after repeated attempts.
 15. Upload a chamber logo and administration profile picture in Settings; confirm both appear in navigation.
 16. Open the site over HTTPS, confirm `/manifest.webmanifest` and `/sw.js` return 200, and install the PWA from a phone. Test the offline fallback and right-swipe navigation.
-17. Confirm database and file backups are scheduled and test a restore, including `storage/app/public/branding` and `storage/app/public/avatars`.
+17. Confirm database and file backups are scheduled and test a restore, including the `branding/` and `avatars/` prefixes on the configured `UPLOADS_DISK` (`storage/app/public` locally, the R2 bucket in production).
 
 ### Example Nginx location
 
@@ -204,7 +203,7 @@ The Settings data export is a CSV ZIP for inspection/migration. It omits credent
 ## 12. Known installation limitations
 
 - XLSX uses the built-in single-sheet writer rather than Laravel Excel/PhpSpreadsheet, due to the missing `ext-gd` requirement.
-- Free hosting may use ephemeral filesystems. MySQL data, uploaded images, exports, and the database dump must be stored on persistent storage or externally. Uploaded logos live under `storage/app/public/branding`; profile pictures live under `storage/app/public/avatars`.
+- Free hosting may use ephemeral filesystems. MySQL data, uploaded images, exports, and the database dump must be stored on persistent storage or externally. Uploaded logos live under the `branding/` prefix and profile pictures under the `avatars/` prefix on the `UPLOADS_DISK` disk (`storage/app/public` locally; the R2 bucket in production, where the container filesystem is discarded on every deploy).
 - PWA installation requires HTTPS. Configure the web server to serve `.webmanifest` as `application/manifest+json` and `.js` as a JavaScript MIME type. The manifest is served by Laravel at `/manifest.webmanifest`; `public/sw.js` must remain at the site root so its scope covers the whole app.
 - Public registration is intentionally unavailable. The first owner is provisioned by the seeder; additional administrator accounts and their chambers are created from Settings by a signed-in administrator.
 - Node and Composer lock files should be committed for reproducible builds.

@@ -8,10 +8,10 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Support\BrandAssets;
 use App\Support\ChamberContext;
+use App\Support\MediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -53,7 +53,7 @@ class SettingsController extends Controller
             $file = $request->file('chamber_logo');
             $directory = 'branding/'.Str::lower(Str::random(12));
             $extension = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'png');
-            $newLogo = $file->storeAs($directory, 'logo.'.$extension, 'public');
+            $newLogo = $file->storeAs($directory, 'logo.'.$extension, config('filesystems.uploads'));
             if (! $newLogo) {
                 return back()->withErrors(['chamber_logo' => __('settings.flash.logo_error')])->withInput();
             }
@@ -70,7 +70,7 @@ class SettingsController extends Controller
         $chamberId = app(ChamberContext::class)->id();
         $oldAvatar = $user->avatar_path;
         if ($request->hasFile('owner_avatar')) {
-            $newAvatar = $request->file('owner_avatar')->store('avatars', 'public');
+            $newAvatar = $request->file('owner_avatar')->store(MediaStorage::AVATAR_DIRECTORY, config('filesystems.uploads'));
             if (! $newAvatar) {
                 return back()->withErrors(['owner_avatar' => __('settings.flash.avatar_error')])->withInput();
             }
@@ -113,7 +113,19 @@ class SettingsController extends Controller
 
     private function storeBrandAssets(string $logoPath, string $directory): void
     {
-        $assets = BrandAssets::generate(Storage::disk('public')->path($logoPath), $directory);
+        $source = MediaStorage::localCopy($logoPath);
+
+        if ($source === null) {
+            Setting::query()->where('key', 'chamber_brand_assets')->delete();
+
+            return;
+        }
+
+        try {
+            $assets = BrandAssets::generate($source, $directory);
+        } finally {
+            MediaStorage::forgetLocalCopy($source);
+        }
 
         if ($assets === null) {
             Setting::query()->where('key', 'chamber_brand_assets')->delete();
@@ -126,8 +138,8 @@ class SettingsController extends Controller
 
     private function deleteAvatar(?string $path): void
     {
-        if ($path && str_starts_with($path, 'avatars/')) {
-            Storage::disk('public')->delete($path);
+        if ($path && str_starts_with($path, MediaStorage::AVATAR_DIRECTORY.'/')) {
+            MediaStorage::disk()->delete($path);
         }
     }
 }

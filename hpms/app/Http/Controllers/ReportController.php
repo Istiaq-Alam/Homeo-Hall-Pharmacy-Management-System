@@ -8,12 +8,12 @@ use App\Models\Setting;
 use App\Services\PdfRenderer;
 use App\Services\ReportService;
 use App\Support\ChamberContext;
+use App\Support\MediaStorage;
 use App\Support\SimpleXlsxWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -159,8 +159,9 @@ class ReportController extends Controller
         $generatedAt = now()->timezone(config('app.timezone'));
         $logoData = null;
 
-        if (! empty($settings['chamber_logo']) && Storage::disk('public')->exists($settings['chamber_logo'])) {
-            $logoData = 'data:'.Storage::disk('public')->mimeType($settings['chamber_logo']).';base64,'.base64_encode(Storage::disk('public')->get($settings['chamber_logo']));
+        $uploads = MediaStorage::disk();
+        if (! empty($settings['chamber_logo']) && $uploads->exists($settings['chamber_logo'])) {
+            $logoData = 'data:'.$uploads->mimeType($settings['chamber_logo']).';base64,'.base64_encode($uploads->get($settings['chamber_logo']));
         }
 
         $renderer = app(PdfRenderer::class);

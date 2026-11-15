@@ -4,12 +4,13 @@ namespace App\Providers;
 
 use App\Models\Setting;
 use App\Support\BrandAssets;
+use App\Support\MediaStorage;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('pagination.hpms');
         Paginator::defaultSimpleView('pagination.hpms');
 
-        if (Schema::hasTable('settings') && Schema::hasColumn('settings', 'chamber_id')) {
+        if ($this->hasChamberSettings()) {
             $settings = Setting::query()->pluck('value', 'key')->all();
             if (! empty($settings['timezone'])) {
                 Config::set('app.timezone', $settings['timezone']);
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer(['layouts.app', 'settings.index', 'medicines.form'], function ($view): void {
-            if (! Schema::hasTable('settings') || ! Schema::hasColumn('settings', 'chamber_id')) {
+            if (! $this->hasChamberSettings()) {
                 $view->with('appSettings', []);
 
                 return;
@@ -35,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
 
             $settings = Setting::query()->pluck('value', 'key')->all();
             if (! empty($settings['chamber_logo'])) {
-                $settings['chamber_logo_url'] = Storage::disk('public')->url($settings['chamber_logo']);
+                $settings['chamber_logo_url'] = MediaStorage::url($settings['chamber_logo']);
             }
             if (! empty($settings['chamber_brand_assets'])) {
                 $assets = json_decode((string) $settings['chamber_brand_assets'], true);
@@ -50,5 +51,18 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+    }
+
+    /**
+     * The settings table is read during boot; a database outage must not turn
+     * health checks into 500s. Missing settings simply fall back to defaults.
+     */
+    private function hasChamberSettings(): bool
+    {
+        try {
+            return Schema::hasTable('settings') && Schema::hasColumn('settings', 'chamber_id');
+        } catch (Throwable) {
+            return false;
+        }
     }
 }
