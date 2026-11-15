@@ -28,3 +28,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Test-generated fake disks
+/storage/framework/testing/disks/

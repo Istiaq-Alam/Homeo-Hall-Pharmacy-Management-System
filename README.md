@@ -108,7 +108,7 @@ php artisan optimize:clear
 php artisan test --compact
 ```
 
-The suite uses an in-memory SQLite database configured by `phpunit.xml`. It never touches the MySQL development or production database. See [`docs/TESTING.md`](docs/TESTING.md).
+The suite uses an in-memory SQLite database configured by `phpunit.xml`. It never touches the MySQL development or production database. See [`hpms/docs/TESTING.md`](hpms/docs/TESTING.md).
 
 ## Environment notes
 
@@ -201,11 +201,11 @@ Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets,
 
 ## Documentation
 
-- [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
-- [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
-- [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
-- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — local setup and server checklist.
-- [`docs/TESTING.md`](docs/TESTING.md) — test coverage and manual QA.
+- [`hpms/docs/PROJECT_OVERVIEW.md`](hpms/docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
+- [`hpms/docs/DATABASE_SCHEMA.md`](hpms/docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
+- [`hpms/docs/BUSINESS_LOGIC.md`](hpms/docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
+- [`hpms/docs/INSTALLATION.md`](hpms/docs/INSTALLATION.md) — local setup and server checklist.
+- [`hpms/docs/TESTING.md`](hpms/docs/TESTING.md) — test coverage and manual QA.
 - [`DEPLOYMENT_AUDIT.md`](DEPLOYMENT_AUDIT.md) — deployment audit and compatibility findings.
 - [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) — Render, TiDB and R2 setup.
 
