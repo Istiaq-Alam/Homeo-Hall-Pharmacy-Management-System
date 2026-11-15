@@ -1,5 +1,6 @@
 *.log
 .DS_Store
+homeo_hall_tidb_import.sql
 .env
 .env.backup
 .env.production
