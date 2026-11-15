@@ -57,7 +57,11 @@ RUN apt-get update \
 
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 COPY docker/apache-hardening.conf /etc/apache2/conf-available/zz-hardening.conf
-RUN a2enconf zz-hardening
+# Debian ships `Alias /icons/ "/usr/share/apache2/icons/"`. That alias wins over
+# the application's own public/icons directory, so every logo, favicon and PWA
+# icon 404s in production. Drop it; docker/apache.conf aliases /icons/ to the app.
+RUN a2enconf zz-hardening \
+    && rm -f /etc/apache2/mods-enabled/alias.conf
 COPY docker/php-production.ini /usr/local/etc/php/conf.d/zz-production.ini
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint
