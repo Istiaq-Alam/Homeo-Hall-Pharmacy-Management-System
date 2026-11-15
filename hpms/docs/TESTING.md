@@ -17,10 +17,11 @@ Run the suite:
 php artisan test --compact
 ```
 
-Run only the critical workflow suite:
+Run only the critical workflow or chamber-isolation suites:
 
 ```bash
 php artisan test --compact tests/Feature/HpmsWorkflowTest.php
+php artisan test --compact tests/Feature/ChamberIsolationTest.php
 ```
 
 ## Automated coverage
@@ -30,7 +31,7 @@ php artisan test --compact tests/Feature/HpmsWorkflowTest.php
 | Area | Test |
 |---|---|
 | Authentication | Guests redirect to login; registration routes return 404. |
-| Authentication | Owner logs in and out; password is verified. |
+| Authentication | Administrator logs in and out; password is verified. |
 | Medicines | Create and update a medicine; stock remains ledger-controlled. |
 | Medicines | Different potencies remain separate inventory rows. |
 | Medicines | Search and low-stock filtering return correct results. |
@@ -54,9 +55,14 @@ php artisan test --compact tests/Feature/HpmsWorkflowTest.php
 | Exports | CSV, XLSX, and PDF responses have correct content types and respect the range. |
 | Validation | Invalid report dates produce validation errors. |
 | Dashboard | Live sale and purchase data appear in the rendered dashboard. |
-| Pages | Every primary owner screen renders: lists, details, create/edit forms, categories, adjustments, all report pages, settings, and the health endpoint. |
-| Branding | Owner uploads a chamber logo, sees it in navigation, and can remove it with the stored file deleted. |
-| Profile | Owner uploads an administration profile picture, sees it in the sidebar, and can remove it with the stored file deleted. |
+| Pages | Every primary administrator screen renders: lists, details, create/edit forms, categories, adjustments, all report pages, settings, and the health endpoint. |
+| Branding | Administrator uploads a chamber logo, sees it in navigation, and can remove it with the stored file deleted. |
+| Profile | Administrator uploads a profile picture, sees it in the sidebar, and can remove it with the stored file deleted. |
+| PWA | Manifest is public, standalone, correctly scoped, and references existing 192/512 standard and maskable icons; service worker and offline assets exist; app pages expose install/swipe controls; authenticated manifest uses the signed-in chamber name. |
+| Chambers | Creating an administrator provisions a separate chamber, designation, password login, default settings, and default categories. |
+| Chambers | An administrator can rename their own chamber and upload a logo without changing another chamber. |
+| Chambers | Route bindings, lists, category validation, purchases, and sales cannot access another chamber's records. |
+| Chambers | Guest queries and the public manifest do not expose chamber-owned names or records. |
 
 A representative accounting fixture:
 
@@ -79,9 +85,14 @@ A representative accounting fixture:
 
 Automated tests are necessary but not a full UX review. Before handoff, verify:
 
-- [ ] Login succeeds with the provisioned owner; wrong credentials show a clear error; repeated attempts throttle.
+- [ ] Login succeeds with the provisioned owner and a newly created administrator; wrong credentials show a clear error; repeated attempts throttle.
+- [ ] From Settings, create an administrator with full name, email, designation, password, and confirmation; confirm the new chamber and default categories exist.
+- [ ] Sign in as the new administrator, rename the chamber, upload a logo, and confirm the first chamber's name/settings/data are unchanged.
+- [ ] Confirm a second chamber cannot open the first chamber's medicine, category, purchase, sale, expense, report, or backup data.
 - [ ] All sidebar links render without exceptions on desktop, tablet, and phone widths.
-- [ ] The mobile navigation opens, overlays the page, closes via backdrop, and closes after selecting a link.
+- [ ] The mobile navigation opens by menu button and by swiping right; it overlays the page, closes via backdrop/close button, swipe-left, Escape, and after selecting a link.
+- [ ] At phone width, wide data tables become labelled cards rather than causing page overflow; forms, charts, filters, pagination, and actions remain usable.
+- [ ] Install the PWA over HTTPS (or localhost); verify standalone launch, app icon, safe areas on a notched device, and the offline fallback after disconnecting.
 - [ ] Add a medicine; verify it appears in search, category, form, low-stock, and out-of-stock filters as appropriate.
 - [ ] Record a purchase with two medicines; check detail totals, stock, average cost, and movement entries.
 - [ ] Record a sale; verify stock validation, default selling price, totals, and preserved cost on the detail page.
@@ -91,13 +102,13 @@ Automated tests are necessary but not a full UX review. Before handoff, verify:
 - [ ] Cycle daily, monthly, yearly, and custom reports; verify all cards and tables.
 - [ ] Download PDF, XLSX, and CSV; verify the selected date range and totals.
 - [ ] Print a report; confirm navigation/actions are hidden and tables fit.
-- [ ] Change chamber and owner name; confirm the sidebar owner name updates.
+- [ ] Change chamber and administrator name; confirm the sidebar name updates and the chamber record is renamed.
 - [ ] Change password; sign in again with the new password.
 - [ ] Upload a chamber logo, confirm it appears in navigation, then remove it and confirm the monogram returns.
 - [ ] Upload an administration profile picture, confirm it appears in the sidebar owner block, then remove it and confirm the initial returns.
 - [ ] Download the business-data ZIP; inspect that credentials/session data are absent.
 - [ ] Run `/health` with the database up and down.
-- [ ] Check browser console for JavaScript errors on charts and line-item forms.
+- [ ] Check browser console for JavaScript errors on charts, line-item forms, swipe navigation, and service-worker registration.
 - [ ] Check keyboard focus visibility and reduced-motion behavior.
 
 ## Troubleshooting tests

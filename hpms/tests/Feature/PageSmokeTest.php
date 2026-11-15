@@ -161,4 +161,37 @@ class PageSmokeTest extends TestCase
             ->assertOk()
             ->assertDontSee('avatar-photo', false);
     }
+
+    public function test_pwa_manifest_and_mobile_shell_are_installable(): void
+    {
+        $owner = User::factory()->create();
+
+        $manifest = $this->get('/manifest.webmanifest')
+            ->assertOk()
+            ->assertHeader('content-type', 'application/manifest+json')
+            ->assertJsonPath('display', 'standalone')
+            ->assertJsonPath('scope', '/')
+            ->assertJsonPath('start_url', '/dashboard');
+
+        $icons = $manifest->json('icons');
+        $this->assertCount(4, $icons);
+        foreach ($icons as $icon) {
+            $file = public_path(ltrim($icon['src'], '/'));
+            $this->assertFileExists($file);
+            [$width, $height] = getimagesize($file);
+            $this->assertSame($icon['sizes'], $width.'x'.$height);
+        }
+
+        $this->assertFileExists(public_path('sw.js'));
+        $this->assertFileExists(public_path('offline.html'));
+        $this->assertFileExists(public_path('icons/apple-touch-icon.png'));
+
+        $this->actingAs($owner)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('manifest.webmanifest', false)
+            ->assertSee('id="menu-toggle"', false)
+            ->assertSee('id="sidebar-close"', false)
+            ->assertSee('id="install-app"', false)
+            ->assertSee('viewport-fit=cover', false);
+    }
 }

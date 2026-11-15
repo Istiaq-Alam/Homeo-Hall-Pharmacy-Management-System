@@ -9,7 +9,6 @@ use App\Models\Sale;
 use App\Models\StockMovement;
 use App\Services\ReportService;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -31,6 +30,7 @@ class DashboardController extends Controller
         $months = collect(range(5, 0))->map(fn (int $offset) => CarbonImmutable::today(config('app.timezone'))->startOfMonth()->subMonths($offset));
         $chart = $months->map(function (CarbonImmutable $month) use ($reports): array {
             $data = $reports->summary($month->startOfMonth()->toDateString(), $month->endOfMonth()->toDateString());
+
             return ['label' => $month->format('M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'profit' => $data['net_profit']];
         });
         $activity = collect()

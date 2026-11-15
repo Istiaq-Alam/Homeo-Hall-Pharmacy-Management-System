@@ -1,5 +1,8 @@
 import Alpine from 'alpinejs';
 import Chart from 'chart.js/auto';
+import './navigation';
+import './pwa';
+import './tables';
 
 window.Alpine = Alpine;
 window.Chart = Chart;

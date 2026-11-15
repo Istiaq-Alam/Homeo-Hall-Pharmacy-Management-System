@@ -11,10 +11,10 @@ This document is the authoritative explanation of the accounting and stock rules
 
 ## Medicine identity
 
-A stock item is uniquely identified by:
+Within a chamber, a stock item is uniquely identified by:
 
 ```text
-name + potency + form + unit
+chamber + name + potency + form + unit
 ```
 
 `Nux Vomica 30C Liquid Bottle` and `Nux Vomica 200C Liquid Bottle` are different rows with independent stock, cost, and prices. Editing a medicine cannot merge it with an existing identity.
@@ -103,7 +103,7 @@ Cancellation is rejected when:
 
 - The transaction is already cancelled.
 - Current stock is less than the quantity being reversed.
-- A **completed sale created after this purchase** used the medicine. Such a sale's COGS was based on the blended average. Reversing the purchase afterward would either distort remaining inventory cost or silently rewrite already-reported COGS. The owner must cancel the later sale first if that is the intended correction.
+- A **completed sale created after this purchase** used the medicine. Such a sale's COGS was based on the blended average. Reversing the purchase afterward would either distort remaining inventory cost or silently rewrite already-reported COGS. The administrator must cancel the later sale first if that is the intended correction.
 - The average calculation would otherwise require removing more cost than the remaining pool holds.
 
 A later purchase that has not been consumed does not block cancellation; the subtraction formula remains mathematically consistent. A cancelled sale does not block it because the sale's stock and cost were restored. Purchases are never partially cancelled: either every line can reverse safely, or nothing is changed.
@@ -190,7 +190,7 @@ Report queries include `status = completed` for sales, purchases, and expenses. 
 
 - Report ranges are inclusive of both dates.
 - Queries compare date fields from `from 00:00:00` through `to 23:59:59`, avoiding off-by-one exclusions under databases that persist a time component on date values.
-- Transaction dates are the owner-entered calendar dates and drive reports; `created_at` does not move a transaction into a different report period.
+- Transaction dates are the administrator-entered calendar dates and drive reports; `created_at` does not move a transaction into a different report period.
 - The application and display timezone is `Asia/Dhaka`.
 
 ## Concurrency and atomicity

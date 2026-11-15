@@ -72,7 +72,8 @@ class MedicineController extends Controller
 
     public function saveCategory(Request $request, ?MedicineCategory $category = null): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('medicine_categories', 'name')->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
+        $chamberId = $request->user()->chamber_id;
+        $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('medicine_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
         ($category ?? new MedicineCategory)->fill($data)->save();
 
         return back()->with('success', 'Medicine category saved.');
@@ -85,7 +86,8 @@ class MedicineController extends Controller
 
     public function adjust(Request $request, TransactionService $transactions): RedirectResponse
     {
-        $data = $request->validate(['medicine_id' => ['required', 'exists:medicines,id'], 'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])], 'quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'reason' => ['required', 'string', 'max:255'], 'adjustment_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000']]);
+        $chamberId = $request->user()->chamber_id;
+        $data = $request->validate(['medicine_id' => ['required', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])], 'quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'reason' => ['required', 'string', 'max:255'], 'adjustment_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000']]);
         $transactions->adjustStock($data, (int) $request->user()->id);
 
         return redirect()->route('medicines.index')->with('success', 'Stock adjustment recorded.');
@@ -94,8 +96,9 @@ class MedicineController extends Controller
     /** @return array<string, mixed> */
     private function validated(Request $request, ?Medicine $medicine = null): array
     {
+        $chamberId = $request->user()->chamber_id;
         $data = $request->validate([
-            'category_id' => ['required', 'exists:medicine_categories,id'],
+            'category_id' => ['required', Rule::exists('medicine_categories', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))],
             'name' => ['required', 'string', 'max:150'],
             'potency' => ['nullable', 'string', 'max:50'],
             'form' => ['required', 'string', 'max:50'],

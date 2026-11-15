@@ -26,7 +26,7 @@ class ExpenseController extends Controller
 
     public function create(): View
     {
-        return view('expenses.form', ['expense' => new Expense(), 'categories' => ExpenseCategory::query()->where('is_active', true)->orderBy('name')->get()]);
+        return view('expenses.form', ['expense' => new Expense, 'categories' => ExpenseCategory::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
     public function store(Request $request, TransactionService $transactions): RedirectResponse
@@ -74,8 +74,9 @@ class ExpenseController extends Controller
 
     public function saveCategory(Request $request, ?ExpenseCategory $category = null): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('expense_categories', 'name')->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
-        ($category ?? new ExpenseCategory())->fill($data)->save();
+        $chamberId = $request->user()->chamber_id;
+        $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('expense_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
+        ($category ?? new ExpenseCategory)->fill($data)->save();
 
         return back()->with('success', 'Expense category saved.');
     }
@@ -83,8 +84,10 @@ class ExpenseController extends Controller
     /** @return array<string, mixed> */
     private function validated(Request $request): array
     {
+        $chamberId = $request->user()->chamber_id;
+
         return $request->validate([
-            'expense_category_id' => ['required', 'exists:expense_categories,id'],
+            'expense_category_id' => ['required', Rule::exists('expense_categories', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))],
             'expense_date' => ['required', 'date'],
             'description' => ['required', 'string', 'max:200'],
             'amount' => ['required', 'numeric', 'gt:0', 'max:9999999999.99'],

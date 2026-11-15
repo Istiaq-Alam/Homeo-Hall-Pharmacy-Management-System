@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChamber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExpenseCategory extends Model
 {
-    protected $fillable = ['name', 'is_active'];
+    use BelongsToChamber;
+
+    protected $fillable = ['chamber_id', 'name', 'is_active'];
 
     protected function casts(): array
     {

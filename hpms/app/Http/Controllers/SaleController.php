@@ -7,6 +7,7 @@ use App\Models\Sale;
 use App\Services\TransactionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SaleController extends Controller
@@ -30,9 +31,10 @@ class SaleController extends Controller
 
     public function store(Request $request, TransactionService $transactions): RedirectResponse
     {
+        $chamberId = $request->user()->chamber_id;
         $data = $request->validate([
             'sale_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000'],
-            'items' => ['required', 'array', 'min:1'], 'items.*.medicine_id' => ['required', 'distinct', 'exists:medicines,id'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'items.*.unit_price' => ['required', 'numeric', 'min:0.01', 'max:9999999999.99'],
+            'items' => ['required', 'array', 'min:1'], 'items.*.medicine_id' => ['required', 'distinct', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'items.*.unit_price' => ['required', 'numeric', 'min:0.01', 'max:9999999999.99'],
         ]);
         $sale = $transactions->recordSale($data, (int) $request->user()->id);
 
@@ -54,7 +56,8 @@ class SaleController extends Controller
 
     public function price(Request $request): array
     {
-        $data = $request->validate(['medicine_id' => ['required', 'exists:medicines,id']]);
+        $chamberId = $request->user()->chamber_id;
+        $data = $request->validate(['medicine_id' => ['required', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))]]);
         $medicine = Medicine::query()->findOrFail($data['medicine_id']);
 
         return ['selling_price' => $medicine->selling_price, 'stock' => $medicine->stock_quantity, 'name' => $medicine->name.' '.$medicine->potency];

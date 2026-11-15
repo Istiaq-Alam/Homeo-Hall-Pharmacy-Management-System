@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChamber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sale extends Model
 {
-    protected $fillable = ['sale_number', 'sale_date', 'total_amount', 'status', 'notes', 'cancellation_reason', 'cancelled_at', 'user_id'];
+    use BelongsToChamber;
+
+    protected $fillable = ['chamber_id', 'sale_number', 'sale_date', 'total_amount', 'status', 'notes', 'cancellation_reason', 'cancelled_at', 'user_id'];
 
     protected function casts(): array
     {

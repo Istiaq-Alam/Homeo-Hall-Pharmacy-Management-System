@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChamber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Expense extends Model
 {
-    protected $fillable = ['expense_category_id', 'expense_date', 'description', 'amount', 'notes', 'status', 'cancellation_reason', 'cancelled_at', 'user_id'];
+    use BelongsToChamber;
+
+    protected $fillable = ['chamber_id', 'expense_category_id', 'expense_date', 'description', 'amount', 'notes', 'status', 'cancellation_reason', 'cancelled_at', 'user_id'];
 
     protected function casts(): array
     {

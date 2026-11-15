@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChamber;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-    protected $fillable = ['key', 'value'];
+    use BelongsToChamber;
+
+    protected $fillable = ['chamber_id', 'key', 'value'];
 }

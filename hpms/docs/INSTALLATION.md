@@ -80,14 +80,14 @@ php artisan storage:link
 
 The seeder:
 
-- Creates the seven default medicine categories.
-- Creates the nine default expense categories.
+- Creates or reuses the first chamber.
+- Creates that chamber's seven default medicine categories and nine default expense categories.
 - Creates default settings for Homeo-Hall, BDT, ৳, Asia/Dhaka, low-stock level 5, and report period 30 days.
-- Creates the owner only when both `OWNER_EMAIL` and `OWNER_PASSWORD` are set.
+- Creates the owner only when both `OWNER_EMAIL` and `OWNER_PASSWORD` are set and that email does not already exist.
 - Throws an explicit error when exactly one owner variable is present.
 - Does not create sample transactions.
 
-After provisioning, remove `OWNER_PASSWORD` from the production environment if it is no longer needed; the owner can change the password in Settings. Do not run the seeder again with different owner credentials expecting a second account; it creates one matching account if absent.
+After provisioning, remove `OWNER_PASSWORD` from the production environment if it is no longer needed; the owner can change the password in Settings. Use Settings → Create an admin account to add another administrator; each receives a new chamber. Do not rerun the seeder with different credentials expecting a separate chamber.
 
 ## 6. Build frontend assets
 
@@ -138,7 +138,8 @@ php artisan test --compact
 13. Verify `/health` returns HTTP 200 with both statuses `ok`.
 14. Verify `/login` loads and a wrong password is throttled after repeated attempts.
 15. Upload a chamber logo and administration profile picture in Settings; confirm both appear in navigation.
-16. Confirm database and file backups are scheduled and test a restore, including `storage/app/public/branding` and `storage/app/public/avatars`.
+16. Open the site over HTTPS, confirm `/manifest.webmanifest` and `/sw.js` return 200, and install the PWA from a phone. Test the offline fallback and right-swipe navigation.
+17. Confirm database and file backups are scheduled and test a restore, including `storage/app/public/branding` and `storage/app/public/avatars`.
 
 ### Example Nginx location
 
@@ -204,5 +205,6 @@ The Settings data export is a CSV ZIP for inspection/migration. It omits credent
 
 - XLSX uses the built-in single-sheet writer rather than Laravel Excel/PhpSpreadsheet, due to the missing `ext-gd` requirement.
 - Free hosting may use ephemeral filesystems. MySQL data, uploaded images, exports, and the database dump must be stored on persistent storage or externally. Uploaded logos live under `storage/app/public/branding`; profile pictures live under `storage/app/public/avatars`.
-- The app has one owner and no registration; provisioning is intentionally an operator action.
+- PWA installation requires HTTPS. Configure the web server to serve `.webmanifest` as `application/manifest+json` and `.js` as a JavaScript MIME type. The manifest is served by Laravel at `/manifest.webmanifest`; `public/sw.js` must remain at the site root so its scope covers the whole app.
+- Public registration is intentionally unavailable. The first owner is provisioned by the seeder; additional administrator accounts and their chambers are created from Settings by a signed-in administrator.
 - Node and Composer lock files should be committed for reproducible builds.

@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Homeo-Hall is a private record-keeping application for one homeopathic chamber owner in Bangladesh. It tracks medicine stock, medicine purchases, medicine sales, other chamber expenses, and the resulting gross and net operating profit. The owner enters every transaction manually.
+Homeo-Hall is a private record-keeping application for homeopathic chambers in Bangladesh. It tracks medicine stock, medicine purchases, medicine sales, other chamber expenses, and the resulting gross and net operating profit. Each chamber administrator enters their own transactions manually.
 
-The system is intentionally small. It is not an online pharmacy, hospital system, multi-user ERP, or payment platform. There are no patients, prescriptions, customer accounts, supplier accounts, employees, roles, or public registration.
+The system is intentionally small. It is not an online pharmacy, hospital system, multi-user ERP, or payment platform. There are no patients, prescriptions, customer accounts, supplier accounts, employees, role hierarchy, or public registration.
 
 ## Users and access
 
-There is exactly one authenticated owner. The owner account is provisioned from `OWNER_EMAIL`, `OWNER_PASSWORD`, and optional `OWNER_NAME` at seeding time. Every business route sits behind Laravel's `auth` middleware. The login endpoint is rate-limited; there is no registration route or user-management screen.
+The first chamber owner is provisioned from `OWNER_EMAIL`, `OWNER_PASSWORD`, and optional `OWNER_NAME` at seeding time. Signed-in administrators can create additional administrator accounts from Settings with a full name, email, designation, and password. Each new account is created inside a new chamber, and all business records and settings are filtered to the signed-in administrator's chamber. Every business route sits behind Laravel's `auth` middleware. The login endpoint is rate-limited; public registration remains unavailable.
 
 ## Modules
 
@@ -16,7 +16,7 @@ There is exactly one authenticated owner. The owner account is provisioned from 
 
 - Login form, logout, CSRF protection, password hashing, throttling, session regeneration.
 - Current-password verification and a 12-character minimum for password changes.
-- No self-service account creation.
+- No public self-service registration. Administrators create additional administrator accounts from Settings; each receives a new chamber with default categories and settings.
 
 ### Dashboard
 
@@ -45,7 +45,7 @@ There is exactly one authenticated owner. The owner account is provisioned from 
 
 ### Sales
 
-- Header plus multiple line items; the owner sees stock, receives the default selling price, and may adjust it.
+- Header plus multiple line items; the administrator sees stock, receives the default selling price, and may adjust it.
 - Server-side stock validation runs before any line is written; row locks protect concurrent sales.
 - Each sale item stores the selling price **and** the weighted-average unit cost at the moment of sale. Later price changes cannot rewrite historical profit.
 - Saving reduces stock and writes sale movements atomically.
@@ -69,10 +69,10 @@ There is exactly one authenticated owner. The owner account is provisioned from 
 
 ### Settings and backup
 
-- Chamber name, owner name, BDT currency and symbol, Asia/Dhaka timezone, default low-stock level, and default report period.
+- Chamber name, administrator name, BDT currency and symbol, Asia/Dhaka timezone, default low-stock level, and default report period.
 - Chamber logo upload (PNG/JPG/WebP, up to 2 MB) with preview, removal, and fallback monogram. The logo appears in the application navigation.
-- Administration profile-picture upload (PNG/JPG/WebP, up to 2 MB) with preview, removal, and an initial-based fallback. The picture appears in the sidebar owner block.
-- Changing the owner name updates the signed-in owner record so navigation and reports stay consistent.
+- Administrator profile-picture upload (PNG/JPG/WebP, up to 2 MB) with preview, removal, and an initial-based fallback. The picture appears in the sidebar administrator block.
+- Changing the administrator name updates the signed-in user record so navigation and reports stay consistent.
 - Password change with current-password verification.
 - Authenticated business-data ZIP export; full recovery uses `mysqldump` as documented in the README.
 
@@ -111,4 +111,4 @@ The UI follows [`../DESIGN.md`](../DESIGN.md):
 
 ## Deliberate non-goals
 
-Patients, prescriptions, appointments, customers, delivery, online ordering, payment gateways, employees, salaries, supplier accounts, multiple branches, roles, subscriptions, and public registration are out of scope. Supplier names remain optional text on purchases.
+Patients, prescriptions, appointments, customers, delivery, online ordering, payment gateways, employees, salaries, supplier accounts, multiple branches within one administrator account, role hierarchy, subscriptions, and public registration are out of scope. Supplier names remain optional text on purchases.

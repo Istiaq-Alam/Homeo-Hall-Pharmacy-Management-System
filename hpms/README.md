@@ -2,13 +2,14 @@
 
 **Homeopathic Medicine Inventory & Financial Management System (HPMS)**
 
-Homeo-Hall is a private, single-owner Laravel application for a homeopathic chamber in Bangladesh. It replaces paper stock registers and manual profit calculations with a clear inventory ledger, expense records, live dashboards, and date-range financial reports.
+Homeo-Hall is a private Laravel application for homeopathic chambers in Bangladesh. Each chamber administrator gets an independent chamber for inventory, purchases, sales, expenses, settings, reports, and backups. It replaces paper stock registers and manual profit calculations with a clear inventory ledger, live dashboards, and date-range financial reports.
 
-> This is deliberately a focused chamber tool, not a pharmacy ERP. It has no patients, prescriptions, customers, online orders, payment gateways, employees, suppliers module, roles, or public registration.
+> This is deliberately a focused chamber tool, not a pharmacy ERP. It has no patients, prescriptions, customers, online orders, payment gateways, employees, suppliers module, role hierarchy, or public registration.
 
 ## Features
 
-- Secure owner-only sign-in, login throttling, and logout. Registration is not exposed.
+- Secure administrator sign-in, login throttling, and logout. Public registration is not exposed.
+- Chamber provisioning from Settings: create an administrator account and a matching chamber in one step, with isolated defaults and categories.
 - Medicine inventory with potency-aware identity, categories, search, filters, sorting, low-stock and out-of-stock views.
 - Purchases with multiple line items, automatic totals, weighted-average costing, and atomic cancellation.
 - Sales with live stock checks, editable selling prices, preserved historical cost, and atomic cancellation.
@@ -17,11 +18,12 @@ Homeo-Hall is a private, single-owner Laravel application for a homeopathic cham
 - Dashboard cards, current-month summary, recent activity, and four live Chart.js charts.
 - Daily, monthly, yearly, custom-range, inventory, medicine-wise sales, expense, low-stock, and stock-movement reports.
 - PDF, XLSX, CSV, and browser-print exports that keep the selected date range.
-- Settings for chamber name, owner name, chamber logo and administration profile-picture upload/removal, currency, timezone, low-stock default, report period, and password.
+- Per-chamber settings for chamber name, administrator name, chamber logo and profile-picture upload/removal, currency, timezone, low-stock default, report period, and password.
 - Uploaded chamber logo displayed in the application navigation, with the Homeo-Hall monogram as fallback.
-- Owner profile picture displayed in the sidebar, with the owner's initial as fallback.
+- Administrator profile picture displayed in the sidebar, with the administrator's initial as fallback.
 - Business-data ZIP export and documented MySQL backup/restore process.
-- Responsive, print-friendly interface based on [`DESIGN.md`](DESIGN.md).
+- Responsive, print-friendly interface based on [`DESIGN.md`](DESIGN.md), with mobile card tables, safe-area support, and swipe-right navigation.
+- Installable PWA with an app manifest, maskable icons, install prompt/iOS guidance, offline fallback, and static-asset caching.
 
 ## Stack
 
@@ -85,7 +87,7 @@ Then run:
 php artisan db:seed
 ```
 
-The seeder creates the default medicine and expense categories, default settings, and the owner account. It never creates sample transactions. If only one of `OWNER_EMAIL` or `OWNER_PASSWORD` is present, it stops with an error rather than creating a partially configured account. Keep `OWNER_PASSWORD` out of version control; after provisioning you may remove it from the environment.
+The seeder creates the first chamber, its default medicine and expense categories, default settings, and the owner account. It never creates sample transactions. Additional administrators created from Settings receive their own chamber and defaults automatically. If only one of `OWNER_EMAIL` or `OWNER_PASSWORD` is present, it stops with an error rather than creating a partially configured account. Keep `OWNER_PASSWORD` out of version control; after provisioning you may remove it from the environment.
 
 Build assets and start the app:
 
@@ -95,6 +97,12 @@ php artisan serve
 ```
 
 Open `http://127.0.0.1:8000/login`.
+
+### Install as an app
+
+The app is installable from a supported browser after the production build is served over HTTPS (or from `localhost` during development). On Android/desktop Chrome or Edge, use the **Install app** action in the sidebar. On iPhone/iPad Safari, open the Share menu and choose **Add to Home Screen**; the sidebar action shows these steps.
+
+Installed mode uses the standalone display, safe-area spacing, app shortcuts, and the generated Homeo-Hall icons. Authenticated pages are deliberately never cached; only the offline fallback and static build assets are stored on the device.
 
 ### Development commands
 
@@ -121,6 +129,7 @@ The suite uses an in-memory SQLite database configured by `phpunit.xml`. It neve
 - `SESSION_HTTP_ONLY=true` and `SESSION_SAME_SITE=lax` are the secure defaults.
 - Do not commit `.env`, database dumps, or owner credentials.
 - `/health` returns JSON with `{"status":"ok","database":"ok"}` and a `503` when the database is unreachable.
+- PWA installation and service workers require HTTPS in production. `localhost` is treated as secure for local testing. Ensure `/sw.js`, `/manifest.webmanifest`, and `/icons/*` are served with their correct content types.
 
 ## Backup and restore
 
@@ -153,7 +162,7 @@ php artisan optimize:clear
 - Validation is server-side; browser calculations are convenience only.
 - Mass assignment is limited by model fillable fields; exports are authenticated.
 - Owner credentials are never hardcoded. Provisioning happens only through environment variables.
-- The session and all business data are restricted to the authenticated owner.
+- The session and all business data are restricted to the authenticated administrator's chamber.
 
 ## Deployment notes
 
@@ -197,4 +206,4 @@ No deployment is performed by this repository. Free hosts may suspend services o
 - XLSX output is a single, clearly formatted worksheet rather than a multi-sheet workbook because the platform lacks `ext-gd`, which PhpSpreadsheet requires. PDF, CSV, and print exports are unaffected.
 - The business-data ZIP is an audit/migration aid, not a complete restore format.
 - There is intentionally no supplier account module, customer module, payment module, or online ordering.
-- The application assumes one owner and one chamber location by design.
+- Each administrator is confined to one chamber. There is no role hierarchy; any signed-in administrator can add another administrator and chamber from Settings.

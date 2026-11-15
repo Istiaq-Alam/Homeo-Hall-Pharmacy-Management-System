@@ -13,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        if (Schema::hasTable('settings')) {
+        if (Schema::hasTable('settings') && Schema::hasColumn('settings', 'chamber_id')) {
             $settings = Setting::query()->pluck('value', 'key')->all();
             if (! empty($settings['timezone'])) {
                 Config::set('app.timezone', $settings['timezone']);
@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         View::composer(['layouts.app', 'settings.index', 'medicines.form'], function ($view): void {
-            if (! Schema::hasTable('settings')) {
+            if (! Schema::hasTable('settings') || ! Schema::hasColumn('settings', 'chamber_id')) {
                 $view->with('appSettings', []);
 
                 return;

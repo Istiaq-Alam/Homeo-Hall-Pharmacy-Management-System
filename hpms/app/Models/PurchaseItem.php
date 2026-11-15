@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToChamber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseItem extends Model
 {
-    protected $fillable = ['purchase_id', 'medicine_id', 'quantity', 'unit_cost', 'line_total'];
+    use BelongsToChamber;
+
+    protected $fillable = ['chamber_id', 'purchase_id', 'medicine_id', 'quantity', 'unit_cost', 'line_total'];
 
     protected function casts(): array
     {

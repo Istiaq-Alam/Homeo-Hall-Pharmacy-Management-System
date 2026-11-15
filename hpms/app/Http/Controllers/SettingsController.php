@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chamber;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,8 +16,9 @@ class SettingsController extends Controller
     public function index(): View
     {
         $settings = Setting::query()->pluck('value', 'key')->all();
+        $admins = User::query()->with('chamber')->orderBy('name')->get();
 
-        return view('settings.index', compact('settings'));
+        return view('settings.index', compact('settings', 'admins'));
     }
 
     public function update(Request $request): RedirectResponse
@@ -67,6 +70,10 @@ class SettingsController extends Controller
         }
         $user->name = $data['owner_name'];
         $user->save();
+
+        if ($user->chamber_id) {
+            Chamber::query()->whereKey($user->chamber_id)->update(['name' => $data['chamber_name']]);
+        }
 
         return back()->with('success', 'Settings saved.');
     }

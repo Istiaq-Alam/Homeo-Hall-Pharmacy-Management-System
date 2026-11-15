@@ -2,9 +2,15 @@
 
 The schema is MySQL 8 compatible and is created by Laravel migrations. All business tables use InnoDB foreign keys and timestamps. Money is `DECIMAL`, never floating point. The only unsigned values are stock quantities and other counts where negatives are invalid by definition.
 
+Every business table belongs to a chamber. Models using the `BelongsToChamber` trait automatically filter queries to the signed-in administrator's `chamber_id` and stamp new records with that chamber.
+
 ## Entity relationships
 
 ```text
+chambers            1 ─── * users
+chambers            1 ─── * medicine_categories / medicines / purchases / purchase_items
+chambers            1 ─── * sales / sale_items / expense_categories / expenses
+chambers            1 ─── * stock_adjustments / stock_movements / settings
 medicine_categories 1 ─── * medicines
 medicines           1 ─── * purchase_items     * ─── 1 purchases
 medicines           1 ─── * sale_items         * ─── 1 sales
@@ -14,13 +20,23 @@ expense_categories  1 ─── * expenses
 users               0..1 ─ * purchases / sales / expenses / stock_adjustments
 ```
 
-A purchase or sale header has many line items. A line item belongs to one medicine. Completed transactions are retained; cancellation sets status, reason, and timestamp rather than deleting rows.
+A purchase or sale header has many line items. A line item belongs to one medicine. Completed transactions are retained; cancellation sets status, reason, and timestamp rather than deleting rows. Every business table below also has a nullable `chamber_id` foreign key with an index; the application scope prevents cross-chamber access and stamps new rows automatically.
 
 ## Tables
 
+### `chambers`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | bigint PK | |
+| `name` | varchar(150) | editable chamber name |
+| timestamps | datetime | |
+
+Each administrator is assigned to one chamber. A chamber owns its users, settings, categories, inventory, transactions, stock ledger, and reports.
+
 ### `users`
 
-Laravel's standard owner table: `id`, `name`, unique `email`, `email_verified_at`, hashed `password`, nullable `avatar_path` (relative public-disk path under `avatars/`), `remember_token`, timestamps. There is no role column because the application has exactly one owner.
+Laravel's standard administrator table: `id`, nullable `chamber_id` FK, `name`, nullable `designation`, unique `email`, `email_verified_at`, hashed `password`, nullable `avatar_path` (relative public-disk path under `avatars/`), `remember_token`, timestamps. There is no role column; access is chamber-scoped rather than role-based.
 
 ### `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`
 
@@ -31,7 +47,8 @@ Framework support tables from the default Laravel migrations. Sessions are datab
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint PK | |
-| `name` | varchar(255) | unique |
+| `chamber_id` | bigint FK nullable | owning chamber; indexed |
+| `name` | varchar(255) | unique per chamber |
 | `is_active` | boolean | default true; deactivate instead of deleting |
 | timestamps | datetime | |
 
@@ -40,6 +57,7 @@ Framework support tables from the default Laravel migrations. Sessions are datab
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint PK | |
+| `chamber_id` | bigint FK nullable | owning chamber; indexed |
 | `category_id` | bigint FK | references `medicine_categories`, restrict on delete |
 | `name` | varchar(255) | indexed |
 | `potency` | varchar(255) | default empty string |
@@ -54,14 +72,14 @@ Framework support tables from the default Laravel migrations. Sessions are datab
 | `is_active` | boolean | deactivation keeps history intact |
 | `timestamps`, `deleted_at` | | soft deletes available for safe lifecycle handling |
 
-Unique identity: `(name, potency, form, unit)` via `medicines_identity_unique`. This is what keeps `Nux Vomica 30C` and `Nux Vomica 200C` as separate inventory rows. Additional indexes: `(category_id, is_active)` and `(stock_quantity, minimum_stock)`.
+Unique identity: `(chamber_id, name, potency, form, unit)` via `medicines_identity_unique`. This is what keeps `Nux Vomica 30C` and `Nux Vomica 200C` as separate inventory rows while allowing the same medicine in different chambers. Additional indexes: `(category_id, is_active)` and `(stock_quantity, minimum_stock)`.
 
 ### `purchases`
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint PK | |
-| `purchase_number` | varchar(255) | unique, generated `PUR-YYYYMMDDHHMMSS-XXXXXX` |
+| `purchase_number` | varchar(255) | unique per chamber, generated `PUR-YYYYMMDDHHMMSS-XXXXXX` |
 | `purchase_date` | date | indexed; report key |
 | `supplier_name` | varchar(255) nullable | plain text only |
 | `total_amount` | decimal(12,2) | server-calculated line sum |
@@ -89,7 +107,7 @@ Unique identity: `(name, potency, form, unit)` via `medicines_identity_unique`. 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint PK | |
-| `sale_number` | varchar(255) | unique, generated `SAL-YYYYMMDDHHMMSS-XXXXXX` |
+| `sale_number` | varchar(255) | unique per chamber, generated `SAL-YYYYMMDDHHMMSS-XXXXXX` |
 | `sale_date` | date | indexed; report key |
 | `total_amount` | decimal(12,2) | server-calculated line sum |
 | `status` | varchar(255) | `completed` or `cancelled`, indexed |
@@ -117,7 +135,7 @@ The historical cost columns are the authoritative COGS source. Current medicine 
 
 ### `expense_categories`
 
-`id`, unique `name`, `is_active`, timestamps. Defaults: Chamber Rent, Electricity, Water, Internet, Transportation, Stationery, Cleaning, Maintenance, Other.
+`id`, `chamber_id`, unique `(chamber_id, name)`, `is_active`, timestamps. Defaults per chamber: Chamber Rent, Electricity, Water, Internet, Transportation, Stationery, Cleaning, Maintenance, Other.
 
 ### `expenses`
 
@@ -176,11 +194,12 @@ This is an append-only ledger. Business operations write a movement for every st
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint PK | |
-| `key` | varchar(255) | unique setting key |
+| `chamber_id` | bigint FK nullable | owning chamber |
+| `key` | varchar(255) | unique per chamber |
 | `value` | text nullable | string value |
 | timestamps | | |
 
-Seeded keys: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_stock_default`, `report_default_days`. `owner_name` is written when the owner saves settings. `chamber_logo` stores the relative public-disk path (for example `branding/abc123.png`) when a logo is uploaded; the file itself lives under `storage/app/public/branding`.
+Seeded keys per chamber: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_stock_default`, `report_default_days`. `owner_name` is written when settings are saved. `chamber_logo` stores the relative public-disk path (for example `branding/abc123.png`) when a logo is uploaded; the file itself lives under `storage/app/public/branding`.
 
 ## Quantity and money decisions
 
@@ -194,7 +213,7 @@ Seeded keys: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_sto
 - Transaction header dates are MySQL `DATE` values representing the chamber's local calendar day.
 - Movement and cancellation timestamps are datetimes interpreted in `Asia/Dhaka`.
 - Report ranges are inclusive. Queries use `from 00:00:00` through `to 23:59:59`, which avoids excluding same-day rows when a date column is stored with a time component by a test database.
-- Laravel's configured app timezone is `Asia/Dhaka`; the saved setting is applied during boot.
+- Laravel's configured app timezone is `Asia/Dhaka`; each chamber also stores its timezone setting for display and future per-chamber scheduling.
 
 ## Referential integrity
 
@@ -205,10 +224,10 @@ Seeded keys: `chamber_name`, `currency`, `currency_symbol`, `timezone`, `low_sto
 
 ## Migration
 
-All application tables are created by:
+The base application tables are created by `database/migrations/2026_11_15_111801_create_hpms_business_tables.php`. Chamber support, administrator designation, backfills, and chamber-scoped unique indexes are added by:
 
 ```text
-database/migrations/2026_11_15_111801_create_hpms_business_tables.php
+database/migrations/2026_11_15_130000_add_chambers_and_admin_accounts.php
 ```
 
-Run `php artisan migrate` against MySQL. Do not switch production to SQLite; SQLite is used only by the isolated test suite.
+Run `php artisan migrate` against MySQL. Existing owner data is assigned to the first chamber by the chamber migration. Do not switch production to SQLite; SQLite is used only by the isolated test suite.
