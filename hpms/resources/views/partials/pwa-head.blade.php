@@ -1,6 +1,6 @@
 @php($pwaTitle = $appSettings['chamber_name'] ?? config('app.name', 'Homeo-Hall'))
 <link rel="manifest" href="{{ route('manifest') }}">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="{{ auth()->check() ? config('themes.'.auth()->user()->activeTheme().'.canvas', '#f5f5f7') : '#f5f5f7' }}">
 <meta name="application-name" content="{{ $pwaTitle }}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
 use App\Models\Chamber;
+use App\Models\SecurityLog;
 use App\Models\User;
 use App\Services\ChamberProvisioner;
 use App\Support\ChamberContext;
@@ -34,6 +35,8 @@ class AdminAccountController extends Controller
             UserRole::Staff => $chambers->createStaff(Chamber::query()->findOrFail($data['chamber_id']), $data),
         };
 
+        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, $role->label().' account created for '.$user->email.'.', $request->user());
+
         return redirect()->route('admin.index')->with('success', $role->label().' account created for '.$user->email.'.');
     }
 
@@ -50,6 +53,7 @@ class AdminAccountController extends Controller
         ]);
 
         $staff = $chambers->createStaff($owner->chamber, $data);
+        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, 'Staff account created for '.$staff->email.' in '.$owner->chamber->name.'.', $owner);
 
         return back()->with('success', 'Staff account created for '.$staff->email.' and assigned to '.$owner->chamber->name.'.');
     }
@@ -102,6 +106,8 @@ class AdminAccountController extends Controller
             $message .= $removedAccounts > 1 ? ', including '.($removedAccounts - 1).' chamber '.str('account')->plural($removedAccounts - 1).'.' : '.';
         }
 
+        SecurityLog::record(SecurityLog::ACCOUNT_DELETED, $message, $admin);
+
         return redirect()->route('admin.index')->with('success', $message);
     }
 
@@ -114,6 +120,7 @@ class AdminAccountController extends Controller
         $avatarPath = $user->avatar_path;
         $user->delete();
         $this->deleteImage($avatarPath, 'avatars/');
+        SecurityLog::record(SecurityLog::ACCOUNT_DELETED, 'Staff account for '.$user->email.' removed from '.$owner->chamber->name.'.', $owner);
 
         return back()->with('success', 'Staff account for '.$user->email.' removed from '.$owner->chamber->name.'.');
     }

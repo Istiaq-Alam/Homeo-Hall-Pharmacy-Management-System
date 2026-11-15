@@ -54,7 +54,7 @@
     <div class="card" id="create-account">
         <div class="section-title"><h2>Create an account</h2></div>
         <p class="report-note" style="margin-top:0">Admins manage the whole system. Chamber owners get a new chamber. Staff are assigned to an existing chamber by an owner or admin.</p>
-        <form method="POST" action="{{ route('admin.accounts.store') }}" class="form-stack" x-data="{ role: '{{ old('role', 'owner') }}' }">@csrf
+        <form method="POST" action="{{ route('admin.accounts.store') }}" class="form-stack" x-data="{ role: '{{ old('role', 'owner') }}', submitting: false }" @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">@csrf
             <div class="form-grid">
                 <label>Full name<input name="name" value="{{ old('name') }}" required maxlength="150" autocomplete="name"></label>
                 <label>Email<input name="email" type="email" value="{{ old('email') }}" required maxlength="255" autocomplete="email"></label>
@@ -66,14 +66,15 @@
                 <label>Confirm password<input name="password_confirmation" type="password" required minlength="12" autocomplete="new-password"></label>
             </div>
             <p class="report-note">Use at least 12 characters. Owners receive their own empty chamber with default categories and settings.</p>
-            <div><button class="button button-primary" type="submit">Create account</button></div>
+            <p class="sr-only" role="status" x-text="submitting ? 'Creating the account…' : ''"></p>
+            <div><button class="button button-primary" type="submit" x-bind:disabled="submitting" x-bind:aria-busy="submitting"><x-spinner x-show="submitting" x-cloak /><span x-text="submitting ? 'Creating account…' : 'Create account'">Create account</span></button></div>
         </form>
     </div>
 
     <div class="card" id="admin-profile">
         @php($admin = auth()->user())
         <div class="section-title"><div><h2>Admin profile & credentials</h2><p class="field-help">Update your own login, password, and profile image.</p></div></div>
-        <form method="POST" action="{{ route('admin.profile.update') }}" class="form-stack" enctype="multipart/form-data">@csrf @method('PUT')
+        <form method="POST" action="{{ route('admin.profile.update') }}" class="form-stack" enctype="multipart/form-data" x-data="{ submitting: false }" @submit="if (submitting) { $event.preventDefault(); } else { submitting = true; }">@csrf @method('PUT')
             <div class="admin-profile-photo-row"><div class="avatar-preview admin-profile-avatar">@if($admin->avatar_url)<img src="{{ $admin->avatar_url }}" alt="Current Admin profile image">@else<span>{{ strtoupper(substr($admin->name, 0, 1)) }}</span>@endif</div><div class="logo-copy"><label>Profile image<input name="profile_image" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="field-help">PNG, JPG, or WebP up to 2 MB.</p>@if($admin->avatar_url)<label class="checkbox-line"><input name="remove_profile_image" type="checkbox" value="1">Remove current image</label>@endif</div></div>
             <div class="form-grid">
                 <label>Full name<input name="name" value="{{ old('name', $admin->name) }}" required maxlength="150" autocomplete="name"></label>
@@ -83,7 +84,8 @@
                 <label>New password <span class="field-help">Leave blank to keep current password</span><input name="password" type="password" minlength="12" autocomplete="new-password"></label>
                 <label>Confirm new password<input name="password_confirmation" type="password" minlength="12" autocomplete="new-password"></label>
             </div>
-            <div><button class="button button-primary" type="submit">Save Admin profile</button></div>
+            <p class="sr-only" role="status" x-text="submitting ? 'Saving your profile…' : ''"></p>
+            <div><button class="button button-primary" type="submit" x-bind:disabled="submitting" x-bind:aria-busy="submitting"><x-spinner x-show="submitting" x-cloak /><span x-text="submitting ? 'Saving profile…' : 'Save Admin profile'">Save Admin profile</span></button></div>
         </form>
     </div>
 </div>
@@ -108,6 +110,23 @@
                 </td>
             </tr>
         @endforeach
+    </tbody></table></div>
+</div>
+
+<div class="card" id="security-log">
+    <div class="section-title"><div><h2>Security log</h2><p class="field-help">Sign-ins, sign-outs, and account or credential changes · newest first</p></div><span class="status status-inactive">Last {{ $securityLogs->count() }} {{ \Illuminate\Support\Str::plural('event', $securityLogs->count()) }}</span></div>
+    <div class="table-wrap is-card-wrap"><table class="table is-card-table"><thead><tr><th>Event</th><th>Detail</th><th>Account</th><th>IP address</th><th>When</th></tr></thead><tbody>
+        @forelse($securityLogs as $log)
+            <tr>
+                <td data-label="Event"><span class="status {{ $log->badgeClass() }}">{{ $log->label() }}</span></td>
+                <td data-label="Detail">{{ $log->description }}</td>
+                <td data-label="Account">{{ $log->actor_name ?: 'Unknown actor' }}<br><small>{{ $log->actor_email ?: '—' }}</small></td>
+                <td data-label="IP address"><small>{{ $log->ip_address ?: '—' }}</small></td>
+                <td data-label="When">{{ $log->created_at->format('d M Y, H:i') }}<br><small>{{ $log->created_at->diffForHumans() }}</small></td>
+            </tr>
+        @empty
+            <tr><td colspan="5" data-label="">No security events recorded yet.</td></tr>
+        @endforelse
     </tbody></table></div>
 </div>
 @endsection

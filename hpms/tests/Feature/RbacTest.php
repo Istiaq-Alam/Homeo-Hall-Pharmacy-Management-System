@@ -169,6 +169,26 @@ class RbacTest extends TestCase
         $this->assertLessThan($installButtonPosition, $switcherPosition);
     }
 
+    public function test_admin_with_no_chambers_lands_on_the_console_without_a_choose_chamber_error(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get('/dashboard')
+            ->assertRedirect(route('admin.index'))
+            ->assertSessionMissing('error');
+
+        $this->actingAs($admin)->get(route('admin.index'))
+            ->assertOk()
+            ->assertSee('No chambers yet. Create a chamber owner to get started.')
+            ->assertDontSee('Choose a chamber to manage before continuing.');
+
+        $this->chamber('Only Chamber');
+
+        $this->actingAs($admin)->get('/dashboard')
+            ->assertRedirect(route('admin.index'))
+            ->assertSessionHas('error', 'Choose a chamber to manage before continuing.');
+    }
+
     public function test_admin_can_create_system_admins_and_staff_for_any_chamber(): void
     {
         $admin = User::factory()->admin()->create();

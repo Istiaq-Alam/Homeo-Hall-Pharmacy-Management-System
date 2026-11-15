@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SecurityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,19 +27,23 @@ class AuthController extends Controller
         }
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
+            SecurityLog::record(SecurityLog::SIGN_IN_FAILED, 'Failed sign-in attempt for '.$credentials['email'].'.');
             throw ValidationException::withMessages(['email' => 'These credentials do not match our records.']);
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();
+        SecurityLog::record(SecurityLog::SIGN_IN, 'Signed in successfully.', Auth::user());
 
         return redirect()->intended(route('dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        SecurityLog::record(SecurityLog::SIGN_OUT, 'Signed out.', $user);
 
         return redirect()->route('login');
     }

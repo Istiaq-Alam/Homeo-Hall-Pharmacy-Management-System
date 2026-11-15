@@ -11,6 +11,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ThemeController;
 use App\Models\Setting;
 use App\Support\ChamberContext;
 use Illuminate\Support\Facades\DB;
@@ -88,6 +89,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
+    Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
+    Route::post('/themes', [ThemeController::class, 'update'])->middleware('throttle:30,1')->name('themes.update');
 
     Route::middleware('role:admin')->group(function (): void {
         Route::get('/admin', [AdminConsoleController::class, 'index'])->name('admin.index');

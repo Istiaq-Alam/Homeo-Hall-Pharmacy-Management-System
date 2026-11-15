@@ -8,6 +8,7 @@ use App\Models\Medicine;
 use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\SecurityLog;
 use App\Models\User;
 use App\Support\ChamberContext;
 use Carbon\CarbonImmutable;
@@ -32,6 +33,7 @@ class AdminConsoleController extends Controller
             ->orderBy('name')
             ->get();
         $users = User::query()->with('chamber')->orderBy('name')->get();
+        $securityLogs = SecurityLog::query()->latest()->limit(15)->get();
 
         $salesByChamber = Sale::query()
             ->withoutGlobalScope('chamber')
@@ -114,7 +116,7 @@ class AdminConsoleController extends Controller
             'net_profit' => $chambers->sum('monthly_net_profit'),
         ];
 
-        return view('admin.index', compact('chambers', 'users', 'activeChamber', 'overview', 'monthLabel'));
+        return view('admin.index', compact('chambers', 'users', 'securityLogs', 'activeChamber', 'overview', 'monthLabel'));
     }
 
     public function updateProfile(Request $request): RedirectResponse
@@ -157,6 +159,9 @@ class AdminConsoleController extends Controller
         }
         if (! empty($data['password'])) {
             $request->session()->regenerate();
+            SecurityLog::record(SecurityLog::PASSWORD_CHANGED, 'Changed their own password.', $admin);
+        } else {
+            SecurityLog::record(SecurityLog::PROFILE_UPDATED, 'Updated their own profile.', $admin);
         }
 
         return back()->with('success', 'Admin profile updated successfully.');

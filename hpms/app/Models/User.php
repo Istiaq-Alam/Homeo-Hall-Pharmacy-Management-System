@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path'])]
+#[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path', 'theme'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -60,6 +60,13 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->role === UserRole::Staff;
+    }
+
+    public function activeTheme(): string
+    {
+        $theme = $this->theme ?: 'apple';
+
+        return array_key_exists($theme, config('themes')) ? $theme : 'apple';
     }
 
     public function roleLabel(): string

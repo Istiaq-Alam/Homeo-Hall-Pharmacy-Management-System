@@ -18,7 +18,11 @@ class EnsureChamberIsSelected
 
         if ($user?->isAdmin()) {
             if ($chamberId === null) {
-                return redirect()->route('admin.index')->with('error', 'Choose a chamber to manage before continuing.');
+                $redirect = redirect()->route('admin.index');
+
+                return Chamber::query()->exists()
+                    ? $redirect->with('error', 'Choose a chamber to manage before continuing.')
+                    : $redirect;
             }
 
             if (! Chamber::query()->whereKey($chamberId)->exists()) {

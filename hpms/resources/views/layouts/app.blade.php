@@ -3,7 +3,7 @@
     $layoutChamber = app(\App\Support\ChamberContext::class)->chamber();
 @endphp
 <!doctype html>
-<html lang="en" class="app-document">
+<html lang="en" class="app-document" data-theme="{{ $layoutUser->activeTheme() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -36,6 +36,7 @@
                 <a href="{{ route('expenses.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('expenses.*') ? 'nav-active' : '' }}"><span><x-icon name="expense" /></span>Expenses</a>
                 <a href="{{ route('reports.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('reports.*') ? 'nav-active' : '' }}"><span><x-icon name="report" /></span>Reports</a>
                 <a href="{{ route('settings.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('settings.*') ? 'nav-active' : '' }}"><span><x-icon name="settings" /></span>Settings</a>
+                <a href="{{ route('themes.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('themes.*') ? 'nav-active' : '' }}"><span><x-icon name="themes" /></span>Themes</a>
             </nav>
             <div class="sidebar-bottom">
                 @if($layoutUser->isAdmin() && $layoutChamber)

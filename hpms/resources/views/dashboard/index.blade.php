@@ -58,16 +58,16 @@
 </div>
 
 @foreach([
-    'sales-chart' => ['label' => 'Sales', 'key' => 'sales', 'color' => '#0066cc'],
-    'expenses-chart' => ['label' => 'Other expenses', 'key' => 'expenses', 'color' => '#7a7a7a'],
+    'sales-chart' => ['label' => 'Sales', 'key' => 'sales', 'role' => 'accent'],
+    'expenses-chart' => ['label' => 'Other expenses', 'key' => 'expenses', 'role' => 'neutral'],
     'comparison-chart' => null,
-    'profit-chart' => ['label' => 'Net operating profit', 'key' => 'profit', 'color' => '#27673a'],
+    'profit-chart' => ['label' => 'Net operating profit', 'key' => 'profit', 'role' => 'positive'],
 ] as $id => $series)
     <script type="application/json" id="{{ $id }}">
         @if($series)
-            {!! json_encode(['labels' => $chart->pluck('label'), 'datasets' => [['label' => $series['label'], 'data' => $chart->pluck($series['key']), 'borderColor' => $series['color'], 'backgroundColor' => $series['key'] === 'expenses' ? '#d2d2d7' : $series['color'], 'borderWidth' => 2, 'tension' => .3, 'fill' => false]]]) !!}
+            {!! json_encode(['labels' => $chart->pluck('label'), 'datasets' => [['label' => $series['label'], 'data' => $chart->pluck($series['key']), 'role' => $series['role'], 'borderWidth' => 2, 'tension' => .3, 'fill' => false]]]) !!}
         @else
-            {!! json_encode(['labels' => $chart->pluck('label'), 'datasets' => [['label' => 'Sales', 'data' => $chart->pluck('sales'), 'backgroundColor' => '#0066cc', 'borderRadius' => 5], ['label' => 'Purchases', 'data' => $chart->pluck('purchases'), 'backgroundColor' => '#d2d2d7', 'borderRadius' => 5]]]) !!}
+            {!! json_encode(['labels' => $chart->pluck('label'), 'datasets' => [['label' => 'Sales', 'data' => $chart->pluck('sales'), 'role' => 'accent', 'borderRadius' => 5], ['label' => 'Purchases', 'data' => $chart->pluck('purchases'), 'role' => 'neutral', 'borderRadius' => 5]]]) !!}
         @endif
     </script>
 @endforeach

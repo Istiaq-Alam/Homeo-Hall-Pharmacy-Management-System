@@ -7,9 +7,69 @@ import './tables';
 window.Alpine = Alpine;
 window.Chart = Chart;
 
+const themeTokens = () => getComputedStyle(document.documentElement);
+const themeColor = (token, fallback) => themeTokens().getPropertyValue(token).trim() || fallback;
+
+// Chart colours come from the active theme's tokens, never from fixed hex, so a
+// series picks up the theme accent and every chart repaints when the theme changes.
+const chartInstances = [];
+const chartPalette = () => ({
+    accent: themeColor('--t-accent', '#0066cc'),
+    accentSoft: themeColor('--t-accent-soft', '#eaf3fc'),
+    positive: themeColor('--t-success-ink', '#27673a'),
+    muted: themeColor('--t-muted', '#7a7a7a'),
+    line: themeColor('--t-line', '#d2d2d7'),
+    grid: themeColor('--t-line-soft', '#f0f0f0'),
+    body: themeColor('--t-body', '#555555'),
+    font: themeColor('--t-font', "'Inter', system-ui, -apple-system, sans-serif"),
+});
+
+const chartSeriesColors = (role, type, palette) => {
+    if (role === 'positive') {
+        return { borderColor: palette.positive, backgroundColor: palette.positive };
+    }
+    if (role === 'neutral') {
+        return { borderColor: palette.muted, backgroundColor: type === 'bar' ? palette.line : palette.muted };
+    }
+
+    return { borderColor: palette.accent, backgroundColor: type === 'bar' ? palette.accent : palette.accentSoft };
+};
+
+const paintCharts = () => {
+    const palette = chartPalette();
+    Chart.defaults.font.family = palette.font;
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = palette.muted;
+
+    chartInstances.forEach((chart) => {
+        const type = chart.config.type;
+        chart.data.datasets.forEach((dataset) => {
+            const colors = chartSeriesColors(dataset.role || 'accent', type, palette);
+            dataset.borderColor = colors.borderColor;
+            dataset.backgroundColor = colors.backgroundColor;
+        });
+        const { plugins, scales } = chart.options;
+        if (plugins?.legend?.labels) {
+            plugins.legend.labels.color = palette.body;
+        }
+        if (scales?.x?.ticks) {
+            scales.x.ticks.color = palette.muted;
+        }
+        if (scales?.y?.ticks) {
+            scales.y.ticks.color = palette.muted;
+        }
+        if (scales?.y?.grid) {
+            scales.y.grid.color = palette.grid;
+        }
+        chart.update('none');
+    });
+};
+
 Chart.defaults.font.family = "'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = '#7a7a7a';
+Chart.defaults.color = themeColor('--t-muted', '#7a7a7a');
+document.addEventListener('themechange', paintCharts);
+new MutationObserver(paintCharts).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('lineItems', () => ({
@@ -82,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const data = JSON.parse(chartData.textContent);
-        new Chart(canvas, {
+        chartInstances.push(new Chart(canvas, {
             type: canvas.dataset.type || 'line',
             data: {
                 labels: data.labels,
@@ -92,12 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { labels: { usePointStyle: true, boxWidth: 7, color: '#555' } } },
+                plugins: { legend: { labels: { usePointStyle: true, boxWidth: 7, color: themeColor('--t-body', '#555') } } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#7a7a7a' } },
-                    y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { color: '#7a7a7a' } },
+                    x: { grid: { display: false }, ticks: { color: themeColor('--t-muted', '#7a7a7a') } },
+                    y: { beginAtZero: true, grid: { color: themeColor('--t-line-soft', '#f0f0f0') }, ticks: { color: themeColor('--t-muted', '#7a7a7a') } },
                 },
             },
-        });
+        }));
     });
+
+    paintCharts();
 });
