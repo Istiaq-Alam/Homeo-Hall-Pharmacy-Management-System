@@ -7,7 +7,6 @@ use App\Models\Sale;
 use App\Services\TransactionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SaleController extends Controller
@@ -21,7 +20,7 @@ class SaleController extends Controller
             ->when($request->filled('medicine'), fn ($query) => $query->whereHas('items', fn ($items) => $items->where('medicine_id', $request->integer('medicine'))))
             ->latest('sale_date')->paginate(15)->withQueryString();
 
-        return view('sales.index', compact('sales'));
+        return view('sales.index', ['sales' => $sales, 'medicines' => Medicine::query()->orderBy('name')->get(['id', 'name', 'potency'])]);
     }
 
     public function create(): View

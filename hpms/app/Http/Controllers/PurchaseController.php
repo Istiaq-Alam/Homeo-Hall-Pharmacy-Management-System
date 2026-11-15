@@ -7,7 +7,6 @@ use App\Models\Purchase;
 use App\Services\TransactionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PurchaseController extends Controller
@@ -21,7 +20,7 @@ class PurchaseController extends Controller
             ->when($request->filled('medicine'), fn ($query) => $query->whereHas('items', fn ($items) => $items->where('medicine_id', $request->integer('medicine'))))
             ->latest('purchase_date')->paginate(15)->withQueryString();
 
-        return view('purchases.index', compact('purchases'));
+        return view('purchases.index', ['purchases' => $purchases, 'medicines' => Medicine::query()->orderBy('name')->get(['id', 'name', 'potency'])]);
     }
 
     public function create(): View

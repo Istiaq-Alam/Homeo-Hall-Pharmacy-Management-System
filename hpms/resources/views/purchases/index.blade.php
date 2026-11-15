@@ -1,0 +1,10 @@
+@extends('layouts.app')
+@section('title', 'Purchases')
+@section('content')
+<x-page-heading title="Purchases" description="Medicine stock acquisitions and their current status.">
+    <x-slot:action><a class="button button-primary" href="{{ route('purchases.create') }}"><x-icon name="plus" /> Record purchase</a></x-slot:action>
+</x-page-heading>
+<form class="filters" method="GET">
+<label>Purchase number<input name="q" value="{{ request('q') }}" placeholder="e.g. PUR-2026"></label><label>Medicine<select name="medicine"><option value="">All medicines</option>@foreach($medicines as $medicine)<option value="{{ $medicine->id }}" @selected(request('medicine') == $medicine->id)>{{ $medicine->name }} {{ $medicine->potency }}</option>@endforeach</select></label><label>From<input name="from" type="date" value="{{ request('from') }}"></label><label>To<input name="to" type="date" value="{{ request('to') }}"></label><button class="button button-muted" type="submit">Apply filters</button></form>
+@if($purchases->isEmpty())<div class="card empty-state"><strong>No purchases found</strong>Record your first medicine purchase to add stock.</div>@else<div class="table-wrap"><table class="table"><thead><tr><th>Purchase</th><th>Date</th><th>Supplier</th><th>Items</th><th class="numeric">Total</th><th>Status</th></tr></thead><tbody>@foreach($purchases as $purchase)<tr><td><a href="{{ route('purchases.show', $purchase) }}"><strong>{{ $purchase->purchase_number }}</strong></a></td><td>{{ $purchase->purchase_date->format('d M Y') }}</td><td>{{ $purchase->supplier_name ?: '—' }}</td><td>{{ $purchase->items_count }}</td><td class="numeric">৳{{ number_format((float) $purchase->total_amount, 2) }}</td><td><span class="status {{ $purchase->status === 'completed' ? 'status-completed' : 'status-cancelled' }}">{{ ucfirst($purchase->status) }}</span></td></tr>@endforeach</tbody></table></div><div class="pagination"><span>Showing {{ $purchases->firstItem() }}–{{ $purchases->lastItem() }} of {{ $purchases->total() }}</span>{{ $purchases->links() }}</div>@endif
+@endsection

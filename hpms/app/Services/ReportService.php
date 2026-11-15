@@ -5,26 +5,31 @@ namespace App\Services;
 use App\Models\Expense;
 use App\Models\Medicine;
 use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockMovement;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ReportService
 {
     /** @return array<string, mixed> */
     public function summary(string $from, string $to): array
     {
-        $sales = Sale::query()->where('status', 'completed')->whereBetween('sale_date', [$from, $to]);
-        $purchases = Purchase::query()->where('status', 'completed')->whereBetween('purchase_date', [$from, $to]);
-        $expenses = Expense::query()->where('status', 'completed')->whereBetween('expense_date', [$from, $to]);
+        $start = $from.' 00:00:00';
+        $end = $to.' 23:59:59';
+        $sales = Sale::query()->where('status', 'completed')->whereBetween('sale_date', [$start, $end]);
+        $purchases = Purchase::query()->where('status', 'completed')->whereBetween('purchase_date', [$start, $end]);
+        $expenses = Expense::query()->where('status', 'completed')->whereBetween('expense_date', [$start, $end]);
         $revenue = (float) (clone $sales)->sum('total_amount');
         $purchaseTotal = (float) (clone $purchases)->sum('total_amount');
         $expenseTotal = (float) (clone $expenses)->sum('amount');
-        $cogs = (float) SaleItem::query()->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$from, $to]))->sum('line_cost_total');
-        $unitsSold = (int) SaleItem::query()->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$from, $to]))->sum('quantity');
-        $unitsPurchased = (int) \App\Models\PurchaseItem::query()->whereHas('purchase', fn ($query) => $query->where('status', 'completed')->whereBetween('purchase_date', [$from, $to]))->sum('quantity');
+        $cogs = (float) SaleItem::query()->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$start, $end]))->sum('line_cost_total');
+        $unitsSold = (int) SaleItem::query()->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$start, $end]))->sum('quantity');
+        $unitsPurchased = (int) PurchaseItem::query()->whereHas('purchase', fn ($query) => $query->where('status', 'completed')->whereBetween('purchase_date', [$start, $end]))->sum('quantity');
         $grossProfit = round($revenue - $cogs, 2);
 
         return [
@@ -41,7 +46,7 @@ class ReportService
             'expenses_count' => (clone $expenses)->count(),
             'units_sold' => $unitsSold,
             'units_purchased' => $unitsPurchased,
-            'inventory_value' => round((float) Medicine::query()->sum(\Illuminate\Database\Query\Expression::raw('stock_quantity * average_cost')), 2),
+            'inventory_value' => round((float) Medicine::query()->sum(DB::raw('stock_quantity * average_cost')), 2),
         ];
     }
 
@@ -51,7 +56,7 @@ class ReportService
         return SaleItem::query()
             ->selectRaw('medicine_id, SUM(quantity) as quantity_sold, SUM(line_total) as revenue, SUM(line_cost_total) as cogs')
             ->with('medicine.category')
-            ->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$from, $to]))
+            ->whereHas('sale', fn ($query) => $query->where('status', 'completed')->whereBetween('sale_date', [$from.' 00:00:00', $to.' 23:59:59']))
             ->groupBy('medicine_id')
             ->orderByDesc('revenue')
             ->get()
@@ -84,9 +89,8 @@ class ReportService
         return ['from' => $start->toDateString(), 'to' => $end->toDateString()];
     }
 
-    /** @return Collection<int, StockMovement> */
-    public function movements(string $from, string $to): Collection
+    public function movements(string $from, string $to): Builder
     {
-        return StockMovement::query()->with('medicine')->whereBetween('movement_date', [$from.' 00:00:00', $to.' 23:59:59'])->latest('movement_date')->get();
+        return StockMovement::query()->with('medicine')->whereBetween('movement_date', [$from.' 00:00:00', $to.' 23:59:59'])->latest('movement_date');
     }
 }

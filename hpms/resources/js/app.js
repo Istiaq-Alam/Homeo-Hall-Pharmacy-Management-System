@@ -4,6 +4,10 @@ import Chart from 'chart.js/auto';
 window.Alpine = Alpine;
 window.Chart = Chart;
 
+Chart.defaults.font.family = "'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#7a7a7a';
+
 document.addEventListener('alpine:init', () => {
     Alpine.data('lineItems', () => ({
         rows: [{ medicine_id: '', quantity: 1, unit_price: '' }],
@@ -41,7 +45,7 @@ document.addEventListener('alpine:init', () => {
 
         chooseMedicine(index) {
             const medicine = this.medicine(index);
-            if (medicine && Number(this.rows[index].unit_price) === 0) {
+            if (medicine) {
                 this.rows[index].unit_price = medicine.price;
             }
         },

@@ -1,0 +1,10 @@
+@extends('layouts.app')
+@section('title', 'Medicine-wise sales')
+@section('content')
+<x-page-heading title="Medicine-wise sales" description="Quantity sold and historical gross profit by medicine for the selected range." />
+@include('reports.partials.tabs')
+<form class="filters no-print" method="GET" action="{{ route('reports.medicine-sales') }}"><label>From<input name="from" type="date" value="{{ $range['from'] }}" required></label><label>To<input name="to" type="date" value="{{ $range['to'] }}" required></label><button class="button button-muted" type="submit">Generate</button><button class="button button-muted" type="button" onclick="window.print()"><x-icon name="printer" /> Print</button></form>
+<div class="print-only"><h2>Homeo-Hall medicine-wise sales</h2><p>{{ \Illuminate\Support\Carbon::parse($range['from'])->format('d M Y') }} to {{ \Illuminate\Support\Carbon::parse($range['to'])->format('d M Y') }}</p></div>
+<div class="stat-grid"><x-stat-card label="Revenue" :value="'৳'.number_format($rows->sum('revenue'), 2)" /><x-stat-card label="Historical COGS" :value="'৳'.number_format($rows->sum('cogs'), 2)" /><x-stat-card label="Gross profit" :value="'৳'.number_format($rows->sum('gross_profit'), 2)" /><x-stat-card label="Medicines sold" :value="$rows->count()" /></div>
+@if($rows->isEmpty())<div class="card empty-state"><strong>No valid sales in this range</strong>Change the date range to continue.</div>@else<div class="table-wrap"><table class="table"><thead><tr><th>Medicine</th><th>Potency</th><th class="numeric">Quantity sold</th><th class="numeric">Revenue</th><th class="numeric">COGS</th><th class="numeric">Gross profit</th></tr></thead><tbody>@foreach($rows as $row)<tr><td><strong>{{ $row->medicine->name }}</strong><br><small>{{ $row->medicine->category->name }}</small></td><td>{{ $row->medicine->potency ?: '—' }}</td><td class="numeric">{{ number_format($row->quantity_sold) }}</td><td class="numeric">৳{{ number_format($row->revenue, 2) }}</td><td class="numeric">৳{{ number_format($row->cogs, 2) }}</td><td class="numeric">৳{{ number_format($row->gross_profit, 2) }}</td></tr>@endforeach</tbody></table></div>@endif
+@endsection

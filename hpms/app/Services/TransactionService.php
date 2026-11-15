@@ -32,11 +32,11 @@ class TransactionService
 
             foreach ($lines as $line) {
                 $medicine = Medicine::query()->lockForUpdate()->findOrFail($line['medicine_id']);
-                $this->ensureStockFits($medicine, $line['quantity']);
                 $oldQuantity = (int) $medicine->stock_quantity;
                 $oldAverage = (float) $medicine->average_cost;
                 $unitCost = (float) $line['unit_price'];
                 $newQuantity = $oldQuantity + $line['quantity'];
+                $this->ensureStockFits($medicine, $newQuantity);
                 $newAverage = round((($oldQuantity * $oldAverage) + ($line['quantity'] * $unitCost)) / $newQuantity, 4);
                 $lineCents = $this->moneyCents($line['quantity'] * $unitCost);
                 $totalCents += $lineCents;
@@ -126,11 +126,29 @@ class TransactionService
                 if ($medicine->stock_quantity < $item->quantity) {
                     throw ValidationException::withMessages(['reason' => 'This purchase cannot be cancelled because some purchased stock has already been sold or adjusted.']);
                 }
+                $purchaseMovementId = StockMovement::query()
+                    ->where('medicine_id', $medicine->id)
+                    ->where('movement_type', 'purchase')
+                    ->where('reference_type', Purchase::class)
+                    ->where('reference_id', $purchase->id)
+                    ->min('id');
+                $laterSaleExists = StockMovement::query()
+                    ->where('medicine_id', $medicine->id)
+                    ->where('movement_type', 'sale')
+                    ->when($purchaseMovementId, fn ($query) => $query->where('id', '>', $purchaseMovementId))
+                    ->whereIn('reference_id', Sale::query()->where('status', 'completed')->select('id'))
+                    ->exists();
+                if ($laterSaleExists) {
+                    throw ValidationException::withMessages(['reason' => 'This purchase cannot be cancelled after a completed sale used its stock; doing so would rewrite historical cost of goods sold.']);
+                }
                 $oldQuantity = (int) $medicine->stock_quantity;
                 $newQuantity = $oldQuantity - (int) $item->quantity;
+                $remainingAverage = $newQuantity === 0
+                    ? 0
+                    : max(0, round((($oldQuantity * (float) $medicine->average_cost) - ((int) $item->quantity * (float) $item->unit_cost)) / $newQuantity, 4));
                 $medicine->forceFill([
                     'stock_quantity' => $newQuantity,
-                    'average_cost' => $newQuantity === 0 ? 0 : $medicine->average_cost,
+                    'average_cost' => $remainingAverage,
                 ])->save();
                 $this->movement($medicine, 'purchase_reversal', -(int) $item->quantity, $oldQuantity, $newQuantity, Purchase::class, $purchase->id, $reason, now());
             }
@@ -233,7 +251,10 @@ class TransactionService
 
     private function ensureStockFits(Medicine $medicine, int $quantity): void
     {
-        if ($quantity < 0 || $quantity > 4294967295) {
+        if ($quantity < 0) {
+            throw ValidationException::withMessages(['quantity' => 'Insufficient stock. Stock can never become negative.']);
+        }
+        if ($quantity > 4294967295) {
             throw new RuntimeException('Stock quantity is outside the supported range.');
         }
     }

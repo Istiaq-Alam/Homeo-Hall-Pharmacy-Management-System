@@ -20,7 +20,10 @@ class MedicineController extends Controller
             ->when($request->status === 'low', fn ($query) => $query->whereColumn('stock_quantity', '<=', 'minimum_stock')->where('stock_quantity', '>', 0))
             ->when($request->status === 'out', fn ($query) => $query->where('stock_quantity', 0))
             ->when($request->filled('form'), fn ($query) => $query->where('form', $request->form))
-            ->when($request->get('sort') === 'stock', fn ($query) => $query->orderBy('stock_quantity'), fn ($query) => $query->orderBy('name'))
+            ->when($request->get('sort') === 'stock', fn ($query) => $query->orderBy('stock_quantity'))
+            ->when($request->get('sort') === 'price', fn ($query) => $query->orderByDesc('selling_price'))
+            ->when($request->get('sort') === 'date', fn ($query) => $query->latest())
+            ->when(! in_array($request->get('sort'), ['stock', 'price', 'date'], true), fn ($query) => $query->orderBy('name'))
             ->paginate(15)->withQueryString();
 
         return view('medicines.index', ['medicines' => $medicines, 'categories' => MedicineCategory::query()->orderBy('name')->get()]);
@@ -28,7 +31,7 @@ class MedicineController extends Controller
 
     public function create(): View
     {
-        return view('medicines.form', ['medicine' => new Medicine(), 'categories' => MedicineCategory::query()->where('is_active', true)->orderBy('name')->get()]);
+        return view('medicines.form', ['medicine' => new Medicine, 'categories' => MedicineCategory::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -70,7 +73,7 @@ class MedicineController extends Controller
     public function saveCategory(Request $request, ?MedicineCategory $category = null): RedirectResponse
     {
         $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('medicine_categories', 'name')->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
-        ($category ?? new MedicineCategory())->fill($data)->save();
+        ($category ?? new MedicineCategory)->fill($data)->save();
 
         return back()->with('success', 'Medicine category saved.');
     }

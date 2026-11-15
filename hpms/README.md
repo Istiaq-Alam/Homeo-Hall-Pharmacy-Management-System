@@ -1,58 +1,196 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Homeo-Hall
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Homeopathic Medicine Inventory & Financial Management System (HPMS)**
 
-## About Laravel
+Homeo-Hall is a private, single-owner Laravel application for a homeopathic chamber in Bangladesh. It replaces paper stock registers and manual profit calculations with a clear inventory ledger, expense records, live dashboards, and date-range financial reports.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> This is deliberately a focused chamber tool, not a pharmacy ERP. It has no patients, prescriptions, customers, online orders, payment gateways, employees, suppliers module, roles, or public registration.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Secure owner-only sign-in, login throttling, and logout. Registration is not exposed.
+- Medicine inventory with potency-aware identity, categories, search, filters, sorting, low-stock and out-of-stock views.
+- Purchases with multiple line items, automatic totals, weighted-average costing, and atomic cancellation.
+- Sales with live stock checks, editable selling prices, preserved historical cost, and atomic cancellation.
+- Stock adjustments with reasons and a complete stock-movement ledger.
+- Chamber expenses and expense categories, separate from medicine purchases.
+- Dashboard cards, current-month summary, recent activity, and four live Chart.js charts.
+- Daily, monthly, yearly, custom-range, inventory, medicine-wise sales, expense, low-stock, and stock-movement reports.
+- PDF, XLSX, CSV, and browser-print exports that keep the selected date range.
+- Settings for chamber name, owner name, currency, timezone, low-stock default, report period, and password.
+- Business-data ZIP export and documented MySQL backup/restore process.
+- Responsive, print-friendly interface based on [`DESIGN.md`](DESIGN.md).
 
-## Learning Laravel
+## Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Layer | Technology |
+|---|---|
+| Language | PHP 8.4 |
+| Framework | Laravel 13 |
+| Database | MySQL 8.x |
+| Frontend | Blade, Tailwind CSS 4, Alpine.js |
+| Charts | Chart.js |
+| Icons | Inline Lucide SVG paths |
+| PDF | `barryvdh/laravel-dompdf` |
+| XLSX | Dependency-free `App\Support\SimpleXlsxWriter` |
+| Build | Vite |
+| Tests | PHPUnit feature tests |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Requirements
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- PHP 8.3 or newer with `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, and `fileinfo`.
+- Composer 2.
+- Node.js 20+ and npm.
+- MySQL 8.x.
+- No paid service is required for core functionality.
 
-## Agentic Development
+`maatwebsite/excel` is intentionally not installed: its PhpSpreadsheet dependency currently requires the PHP `ext-gd` extension, which is absent in this environment. The small built-in XLSX writer is used instead and produces a standard one-sheet workbook. See [Limitations](#limitations).
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Installation
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+cd hpms
+composer install
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Create the MySQL database and update the `DB_*` values in `.env`:
 
-## Contributing
+```sql
+CREATE DATABASE homeo_hall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Install frontend dependencies, migrate, and provision the owner:
 
-## Code of Conduct
+```bash
+npm install
+php artisan migrate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Set **both** owner variables in `.env` before seeding:
 
-## Security Vulnerabilities
+```dotenv
+OWNER_EMAIL=owner@example.com
+OWNER_PASSWORD="a-long-unique-password"
+OWNER_NAME="Chamber Owner"
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Then run:
 
-## License
+```bash
+php artisan db:seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The seeder creates the default medicine and expense categories, default settings, and the owner account. It never creates sample transactions. If only one of `OWNER_EMAIL` or `OWNER_PASSWORD` is present, it stops with an error rather than creating a partially configured account. Keep `OWNER_PASSWORD` out of version control; after provisioning you may remove it from the environment.
+
+Build assets and start the app:
+
+```bash
+npm run build
+php artisan serve
+```
+
+Open `http://127.0.0.1:8000/login`.
+
+### Development commands
+
+```bash
+composer run dev       # Laravel server, queue listener, logs, and Vite
+npm run dev            # Vite only
+php artisan migrate    # Apply pending migrations
+php artisan optimize:clear
+```
+
+### Tests
+
+```bash
+php artisan test --compact
+```
+
+The suite uses an in-memory SQLite database configured by `phpunit.xml`. It never touches the MySQL development or production database. See [`docs/TESTING.md`](docs/TESTING.md).
+
+## Environment notes
+
+- `APP_TIMEZONE=Asia/Dhaka` is the application default. The saved timezone setting also applies at boot.
+- `APP_DEBUG=false` and `APP_ENV=production` in production.
+- Use `SESSION_ENCRYPT=true` and `SESSION_SECURE_COOKIE=true` when serving over HTTPS. Keep `SESSION_SECURE_COOKIE=false` for local HTTP development.
+- `SESSION_HTTP_ONLY=true` and `SESSION_SAME_SITE=lax` are the secure defaults.
+- Do not commit `.env`, database dumps, or owner credentials.
+- `/health` returns JSON with `{"status":"ok","database":"ok"}` and a `503` when the database is unreachable.
+
+## Backup and restore
+
+### Full database backup
+
+Run from the project directory, replacing the user and database name:
+
+```bash
+mysqldump --single-transaction --routines --triggers -u root -p homeo_hall > homeo-hall-$(date +%F).sql
+```
+
+Store the dump outside the web root and keep more than one dated copy. The dump contains the owner password hash, so protect it like a credential.
+
+Restore into an empty database:
+
+```bash
+mysql -u root -p homeo_hall < homeo-hall-YYYY-MM-DD.sql
+php artisan optimize:clear
+```
+
+### Business-data export
+
+**Settings → Data backup** downloads a ZIP containing CSV files for medicines, purchases, purchase items, sales, sale items, expenses, stock adjustments, and stock movements. It intentionally omits users, password hashes, settings, and sessions. It is useful for inspection or migration, but it is **not** a complete restorable database backup. Use `mysqldump` for disaster recovery.
+
+## Security
+
+- Passwords are hashed with Laravel's hasher; the password-change form requires at least 12 characters and the current password.
+- Login is rate-limited and all business routes use the `auth` middleware.
+- CSRF protection is enabled on every form.
+- Validation is server-side; browser calculations are convenience only.
+- Mass assignment is limited by model fillable fields; exports are authenticated.
+- Owner credentials are never hardcoded. Provisioning happens only through environment variables.
+- The session and all business data are restricted to the authenticated owner.
+
+## Deployment notes
+
+Do not deploy this repository with local credentials. When a host is chosen:
+
+1. Create a MySQL 8 database and set all `DB_*` values.
+2. Set `APP_ENV=production`, `APP_DEBUG=false`, a real `APP_URL`, and a fresh `APP_KEY`.
+3. Run `composer install --no-dev --optimize-autoloader`.
+4. Run `npm ci && npm run build`.
+5. Run `php artisan migrate --force`, then provision the owner once.
+6. Point the web server document root at `public/`.
+7. Ensure `storage/` and `bootstrap/cache/` are writable.
+8. Terminate TLS and enable secure session cookies.
+9. Confirm `/health` and `/login` respond.
+
+No deployment is performed by this repository. Free hosts may suspend services or provide non-persistent disks/databases; confirm persistence, backups, and database limits before relying on one.
+
+## Troubleshooting
+
+| Symptom | Check |
+|---|---|
+| `could not find driver` | Enable `pdo_mysql` in PHP. |
+| Login loops back | Clear config and sessions: `php artisan optimize:clear`. |
+| Owner seeding does nothing | Set both `OWNER_EMAIL` and `OWNER_PASSWORD`; run `php artisan db:seed`. |
+| Assets missing | Run `npm run build`; ensure `public/build` exists. |
+| Date-range report is empty | Use the transaction's actual date; the range is inclusive of both full days. |
+| Export fails | Check `storage/` and PHP memory; PDF and XLSX are generated on demand. |
+| MySQL error on migration | Confirm MySQL 8, utf8mb4, and a database name without hyphens unless quoted. |
+
+## Documentation
+
+- [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
+- [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
+- [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — setup and deployment checklist.
+- [`docs/TESTING.md`](docs/TESTING.md) — test coverage and manual QA.
+
+## Limitations
+
+- XLSX output is a single, clearly formatted worksheet rather than a multi-sheet workbook because the platform lacks `ext-gd`, which PhpSpreadsheet requires. PDF, CSV, and print exports are unaffected.
+- The business-data ZIP is an audit/migration aid, not a complete restore format.
+- There is intentionally no supplier account module, customer module, payment module, or online ordering.
+- The application assumes one owner and one chamber location by design.

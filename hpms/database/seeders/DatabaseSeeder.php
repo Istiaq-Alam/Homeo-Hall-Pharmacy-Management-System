@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         foreach (['Chamber Rent', 'Electricity', 'Water', 'Internet', 'Transportation', 'Stationery', 'Cleaning', 'Maintenance', 'Other'] as $name) {
             ExpenseCategory::query()->firstOrCreate(['name' => $name], ['is_active' => true]);
         }
-        foreach (['chamber_name' => 'Homeo-Hall', 'currency' => 'BDT', 'currency_symbol' => '৳', 'timezone' => 'Asia/Dhaka', 'low_stock_default' => '5'] as $key => $value) {
+        foreach (['chamber_name' => 'Homeo-Hall', 'currency' => 'BDT', 'currency_symbol' => '৳', 'timezone' => 'Asia/Dhaka', 'low_stock_default' => '5', 'report_default_days' => '30'] as $key => $value) {
             Setting::query()->firstOrCreate(['key' => $key], ['value' => $value]);
         }
 

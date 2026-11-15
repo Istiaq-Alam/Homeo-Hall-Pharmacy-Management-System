@@ -1,0 +1,10 @@
+@extends('layouts.app')
+@section('title', 'Inventory report')
+@section('content')
+<x-page-heading title="Inventory report" description="Current quantities, average cost, selling price, valuation, and stock status." />
+@include('reports.partials.tabs')
+<div class="report-actions no-print" style="margin-bottom:18px"><button class="button button-muted button-small" type="button" onclick="window.print()"><x-icon name="printer" /> Print</button></div>
+@php($inventoryValue = $inventory->sum(fn ($medicine) => $medicine->stock_quantity * (float) $medicine->average_cost))
+<div class="stat-grid"><x-stat-card label="Inventory value" :value="'৳'.number_format($inventoryValue, 2)" note="Weighted-average valuation" /><x-stat-card label="Medicines" :value="$inventory->count()" /><x-stat-card label="Total units" :value="number_format($inventory->sum('stock_quantity'))" /><x-stat-card label="Low or out of stock" :value="$inventory->filter(fn ($medicine) => $medicine->stock_quantity <= $medicine->minimum_stock)->count()" /></div>
+<div class="table-wrap"><table class="table"><thead><tr><th>Medicine</th><th>Potency</th><th>Category</th><th class="numeric">Quantity</th><th class="numeric">Minimum</th><th class="numeric">Average cost</th><th class="numeric">Selling price</th><th class="numeric">Inventory value</th><th>Status</th></tr></thead><tbody>@forelse($inventory as $medicine)<tr><td>{{ $medicine->name }}</td><td>{{ $medicine->potency ?: '—' }}</td><td>{{ $medicine->category->name }}</td><td class="numeric">{{ number_format($medicine->stock_quantity) }}</td><td class="numeric">{{ number_format($medicine->minimum_stock) }}</td><td class="numeric">৳{{ number_format((float) $medicine->average_cost, 4) }}</td><td class="numeric">৳{{ number_format((float) $medicine->selling_price, 2) }}</td><td class="numeric">৳{{ number_format($medicine->stock_quantity * (float) $medicine->average_cost, 2) }}</td><td>@include('medicines.partials.status', ['medicine' => $medicine])</td></tr>@empty<tr><td colspan="9" class="empty-state">No medicines have been added yet.</td></tr>@endforelse</tbody></table></div>
+@endsection
