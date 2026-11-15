@@ -47,7 +47,7 @@ class ChamberProvisioner
     {
         $settings = [
             'chamber_name' => $chamber->name,
-            'owner_name' => $ownerName ?? 'Chamber Owner',
+            'owner_name' => $ownerName ?? __('settings.chamber_owner_default'),
             'currency' => 'BDT',
             'currency_symbol' => '৳',
             'timezone' => 'Asia/Dhaka',

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Setting;
 use App\Support\BrandAssets;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        Paginator::defaultView('pagination.hpms');
+        Paginator::defaultSimpleView('pagination.hpms');
+
         if (Schema::hasTable('settings') && Schema::hasColumn('settings', 'chamber_id')) {
             $settings = Setting::query()->pluck('value', 'key')->all();
             if (! empty($settings['timezone'])) {

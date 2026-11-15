@@ -82,7 +82,7 @@ class TransactionService
             foreach ($requiredByMedicine as $medicineId => $quantity) {
                 $medicine = $medicines->get($medicineId);
                 if (! $medicine || ! $medicine->is_active || $medicine->stock_quantity < $quantity) {
-                    throw ValidationException::withMessages(['items' => 'Insufficient stock for one or more selected medicines.']);
+                    throw ValidationException::withMessages(['items' => __('sales.insufficient_stock')]);
                 }
             }
 
@@ -124,7 +124,7 @@ class TransactionService
             foreach ($purchase->items as $item) {
                 $medicine = Medicine::query()->lockForUpdate()->findOrFail($item->medicine_id);
                 if ($medicine->stock_quantity < $item->quantity) {
-                    throw ValidationException::withMessages(['reason' => 'This purchase cannot be cancelled because some purchased stock has already been sold or adjusted.']);
+                    throw ValidationException::withMessages(['reason' => __('purchases.cancel_sold_stock')]);
                 }
                 $purchaseMovementId = StockMovement::query()
                     ->where('medicine_id', $medicine->id)
@@ -139,7 +139,7 @@ class TransactionService
                     ->whereIn('reference_id', Sale::query()->where('status', 'completed')->select('id'))
                     ->exists();
                 if ($laterSaleExists) {
-                    throw ValidationException::withMessages(['reason' => 'This purchase cannot be cancelled after a completed sale used its stock; doing so would rewrite historical cost of goods sold.']);
+                    throw ValidationException::withMessages(['reason' => __('purchases.cancel_used_by_sale')]);
                 }
                 $oldQuantity = (int) $medicine->stock_quantity;
                 $newQuantity = $oldQuantity - (int) $item->quantity;
@@ -245,14 +245,14 @@ class TransactionService
     private function ensureCompleted(Model $transaction): void
     {
         if ($transaction->status !== 'completed') {
-            throw ValidationException::withMessages(['reason' => 'This transaction has already been cancelled.']);
+            throw ValidationException::withMessages(['reason' => __('common.already_cancelled')]);
         }
     }
 
     private function ensureStockFits(Medicine $medicine, int $quantity): void
     {
         if ($quantity < 0) {
-            throw ValidationException::withMessages(['quantity' => 'Insufficient stock. Stock can never become negative.']);
+            throw ValidationException::withMessages(['quantity' => __('medicines.stock_never_negative')]);
         }
         if ($quantity > 4294967295) {
             throw new RuntimeException('Stock quantity is outside the supported range.');

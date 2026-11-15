@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 
 class SecurityLog extends Model
@@ -21,16 +22,6 @@ class SecurityLog extends Model
     public const PROFILE_UPDATED = 'profile_updated';
 
     public const PASSWORD_CHANGED = 'password_changed';
-
-    private const LABELS = [
-        self::SIGN_IN => 'Signed in',
-        self::SIGN_IN_FAILED => 'Failed sign-in',
-        self::SIGN_OUT => 'Signed out',
-        self::ACCOUNT_CREATED => 'Account created',
-        self::ACCOUNT_DELETED => 'Account deleted',
-        self::PROFILE_UPDATED => 'Profile updated',
-        self::PASSWORD_CHANGED => 'Password changed',
-    ];
 
     private const BADGES = [
         self::SIGN_IN => 'status-good',
@@ -73,7 +64,9 @@ class SecurityLog extends Model
 
     public function label(): string
     {
-        return self::LABELS[$this->event] ?? Str::headline($this->event);
+        $key = 'admin.events.'.$this->event;
+
+        return Lang::has($key) ? __($key) : Str::headline($this->event);
     }
 
     public function badgeClass(): string

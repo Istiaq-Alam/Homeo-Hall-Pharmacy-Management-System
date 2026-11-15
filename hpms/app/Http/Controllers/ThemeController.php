@@ -29,6 +29,6 @@ class ThemeController extends Controller
 
         return redirect()
             ->route('themes.index')
-            ->with('success', config("themes.{$data['theme']}.name").' theme applied.');
+            ->with('success', __('themes.applied', ['name' => config("themes.{$data['theme']}.name")]));
     }
 }

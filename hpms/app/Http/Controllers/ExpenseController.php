@@ -34,7 +34,7 @@ class ExpenseController extends Controller
     {
         $expense = $transactions->recordExpense($this->validated($request), (int) $request->user()->id);
 
-        return redirect()->route('expenses.index')->with('success', 'Expense recorded.');
+        return redirect()->route('expenses.index')->with('success', __('expenses.flash.recorded'));
     }
 
     public function show(Expense $expense): View
@@ -54,18 +54,18 @@ class ExpenseController extends Controller
         }
         $expense->update($this->validated($request));
 
-        return redirect()->route('expenses.show', $expense)->with('success', 'Expense updated.');
+        return redirect()->route('expenses.show', $expense)->with('success', __('expenses.flash.updated'));
     }
 
     public function cancel(Request $request, Expense $expense): RedirectResponse
     {
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         if ($expense->status !== 'completed') {
-            return back()->withErrors(['reason' => 'This expense is already cancelled.']);
+            return back()->withErrors(['reason' => __('expenses.flash.already_cancelled')]);
         }
         $expense->update(['status' => 'cancelled', 'cancellation_reason' => $data['reason'], 'cancelled_at' => now()]);
 
-        return back()->with('success', 'Expense cancelled.');
+        return back()->with('success', __('expenses.flash.cancelled'));
     }
 
     public function categories(): View
@@ -79,7 +79,7 @@ class ExpenseController extends Controller
         $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('expense_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
         ($category ?? new ExpenseCategory)->fill($data)->save();
 
-        return back()->with('success', 'Expense category saved.');
+        return back()->with('success', __('expenses.flash.category_saved'));
     }
 
     /** @return array<string, mixed> */

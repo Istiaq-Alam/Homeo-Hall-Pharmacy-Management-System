@@ -15,7 +15,7 @@
         <caption>{{ $caption }}</caption>
         <thead>
             <tr>
-                <th scope="col">Period</th>
+                <th scope="col">{{ __('common.period') }}</th>
                 @foreach($series as $label => $values)
                     <th scope="col">{{ $label }}</th>
                 @endforeach
@@ -26,7 +26,7 @@
                 <tr>
                     <th scope="row">{{ $label }}</th>
                     @foreach($series as $values)
-                        <td>{{ number_format((float) ($values[$index] ?? 0), 2) }}</td>
+                        <td>{{ localized_number($values[$index] ?? 0, 2) }}</td>
                     @endforeach
                 </tr>
             @endforeach

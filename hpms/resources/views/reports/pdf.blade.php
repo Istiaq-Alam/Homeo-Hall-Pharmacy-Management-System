@@ -1,12 +1,31 @@
+@php
+    $amount = app()->getLocale() === 'bn'
+        ? fn ($value) => money($value)
+        : fn ($value) => 'BDT '.number_format((float) $value, 2);
+@endphp
 <!doctype html>
-<html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
 <meta charset="utf-8">
-<title>{{ $chamberName }} financial report</title>
+<title>{{ $chamberName }} — {{ __('reports.financial_report') }}</title>
 <style>
-    @page { margin: 30px 34px 54px; }
+    @font-face {
+        font-family: "Noto Sans Bengali";
+        font-style: normal;
+        font-weight: normal;
+        src: url("{{ $fontBase }}/fonts/NotoSansBengali-Regular.ttf") format("truetype");
+    }
+    @font-face {
+        font-family: "Noto Sans Bengali";
+        font-style: normal;
+        font-weight: bold;
+        src: url("{{ $fontBase }}/fonts/NotoSansBengali-Bold.ttf") format("truetype");
+    }
+    @page { size: A4 portrait; margin: 30px 34px 54px; }
     * { box-sizing: border-box; }
+    html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { margin: 0; font-family: "DejaVu Sans", sans-serif; color: #1d1d1f; font-size: 10.5px; line-height: 1.45; }
+    body.locale-bn { font-family: "Noto Sans Bengali", "DejaVu Sans", sans-serif; line-height: 1.65; }
     table { border-collapse: collapse; }
     .header { width: 100%; margin-bottom: 15px; }
     .header td { vertical-align: middle; }
@@ -55,11 +74,15 @@
     .signature-name { font-size: 10px; font-weight: bold; }
     .signature-role { color: #7a7a7a; font-size: 8.5px; }
     .footer { position: fixed; left: 0; right: 0; bottom: -37px; padding-top: 7px; border-top: 1px solid #e0e0e0; color: #8a8a8a; font-size: 8px; }
+    /* Chromium sizes fixed elements against the printable page area, and a negative
+       offset spills onto a blank page, so pin the footer inside the page margins. */
+    .engine-chromium .footer { bottom: 0; }
+    .engine-chromium { padding-bottom: 6px; }
     .footer table { width: 100%; }
     .footer .footer-right { text-align: right; }
 </style>
 </head>
-<body>
+<body class="locale-{{ app()->getLocale() }} engine-{{ $engine ?? 'dompdf' }}">
     <table class="header">
         <tr>
             <td class="header-left">
@@ -67,23 +90,23 @@
                     <tr>
                         <td class="logo-cell">
                             @if($logoData)
-                                <img class="logo-image" src="{{ $logoData }}" alt="{{ $chamberName }} logo">
+                                <img class="logo-image" src="{{ $logoData }}" alt="{{ __('common.logo_alt', ['name' => $chamberName]) }}">
                             @else
                                 <div class="logo-mark">{{ mb_strtoupper(mb_substr($chamberName, 0, 1)) }}</div>
                             @endif
                         </td>
                         <td>
                             <h1>{{ $chamberName }}</h1>
-                            <p class="administrator">Administrator: {{ $administratorName }}</p>
+                            <p class="administrator">{{ __('reports.administrator', ['name' => $administratorName]) }}</p>
                         </td>
                     </tr>
                 </table>
             </td>
             <td class="header-right">
-                <div class="eyebrow">Chamber finance</div>
-                <div class="report-title">Financial report</div>
-                <div class="period">{{ \Illuminate\Support\Carbon::parse($range['from'])->format('d M Y') }} – {{ \Illuminate\Support\Carbon::parse($range['to'])->format('d M Y') }}</div>
-                <div class="generated">Generated {{ $generatedAt->format('d M Y, h:i A') }}</div>
+                <div class="eyebrow">{{ __('reports.chamber_finance') }}</div>
+                <div class="report-title">{{ __('reports.financial_report') }}</div>
+                <div class="period">{{ __('reports.range', ['from' => localized_date($range['from']), 'to' => localized_date($range['to'])]) }}</div>
+                <div class="generated">{{ __('reports.generated', ['date' => localized_date_time($generatedAt)]) }}</div>
             </td>
         </tr>
     </table>
@@ -92,14 +115,14 @@
     <table class="hero">
         <tr>
             <td class="hero-main">
-                <div class="hero-label">Net operating profit</div>
-                <div class="hero-value">BDT {{ number_format($summary['net_profit'], 2) }}</div>
-                <div class="hero-note">Gross profit minus other chamber operating expenses</div>
+                <div class="hero-label">{{ __('reports.net_operating_profit') }}</div>
+                <div class="hero-value">{{ $amount($summary['net_profit']) }}</div>
+                <div class="hero-note">{{ __('reports.net_profit_hero_note') }}</div>
             </td>
             <td class="hero-side">
-                <div class="hero-label">Reporting period</div>
-                <div class="hero-period">{{ \Illuminate\Support\Carbon::parse($range['from'])->format('d M') }} – {{ \Illuminate\Support\Carbon::parse($range['to'])->format('d M Y') }}</div>
-                <div class="hero-range">{{ $summary['sales_count'] }} sale(s) · {{ $summary['expenses_count'] }} expense(s)</div>
+                <div class="hero-label">{{ __('reports.reporting_period') }}</div>
+                <div class="hero-period">{{ localized_date($range['from'], 'd M') }} – {{ localized_date($range['to']) }}</div>
+                <div class="hero-range">{{ __('reports.period_counts', ['sales' => localized_number($summary['sales_count']), 'expenses' => localized_number($summary['expenses_count'])]) }}</div>
             </td>
         </tr>
     </table>
@@ -108,27 +131,27 @@
         <tr>
             <td class="col-left">
                 <div class="panel">
-                    <h2>Trading summary</h2>
+                    <h2>{{ __('reports.trading_summary') }}</h2>
                     <table class="statement">
-                        <tr><td class="label">Sales revenue</td><td class="amount">BDT {{ number_format($summary['sales'], 2) }}</td></tr>
-                        <tr><td class="label">Cost of goods sold</td><td class="amount">BDT {{ number_format($summary['cogs'], 2) }}</td></tr>
-                        <tr class="subtotal"><td>Gross profit</td><td class="amount">BDT {{ number_format($summary['gross_profit'], 2) }}</td></tr>
-                        <tr><td class="label">Other operating expenses</td><td class="amount">BDT {{ number_format($summary['expenses'], 2) }}</td></tr>
-                        <tr class="total"><td>Net operating profit</td><td class="amount">BDT {{ number_format($summary['net_profit'], 2) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.sales_revenue') }}</td><td class="amount">{{ $amount($summary['sales']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.cost_of_goods_sold') }}</td><td class="amount">{{ $amount($summary['cogs']) }}</td></tr>
+                        <tr class="subtotal"><td>{{ __('reports.gross_profit') }}</td><td class="amount">{{ $amount($summary['gross_profit']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.other_operating_expenses') }}</td><td class="amount">{{ $amount($summary['expenses']) }}</td></tr>
+                        <tr class="total"><td>{{ __('reports.net_operating_profit') }}</td><td class="amount">{{ $amount($summary['net_profit']) }}</td></tr>
                     </table>
                 </div>
             </td>
             <td class="col-right">
                 <div class="panel">
-                    <h2>Chamber activity</h2>
+                    <h2>{{ __('reports.chamber_activity') }}</h2>
                     <table class="activity">
-                        <tr><td class="label">Sales records</td><td class="activity-value">{{ number_format($summary['sales_count']) }}</td></tr>
-                        <tr><td class="label">Units sold</td><td class="activity-value">{{ number_format($summary['units_sold']) }}</td></tr>
-                        <tr><td class="label">Purchase records</td><td class="activity-value">{{ number_format($summary['purchases_count']) }}</td></tr>
-                        <tr><td class="label">Units purchased</td><td class="activity-value">{{ number_format($summary['units_purchased']) }}</td></tr>
-                        <tr class="activity-group"><td colspan="2">Inventory</td></tr>
-                        <tr><td class="label">Closing inventory value</td><td class="activity-value">BDT {{ number_format($summary['inventory_value'], 2) }}</td></tr>
-                        <tr><td class="label">Stock purchases</td><td class="activity-value">BDT {{ number_format($summary['purchases'], 2) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.sales_records') }}</td><td class="activity-value">{{ localized_number($summary['sales_count']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.units_sold') }}</td><td class="activity-value">{{ localized_number($summary['units_sold']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.purchase_records') }}</td><td class="activity-value">{{ localized_number($summary['purchases_count']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.units_purchased') }}</td><td class="activity-value">{{ localized_number($summary['units_purchased']) }}</td></tr>
+                        <tr class="activity-group"><td colspan="2">{{ __('reports.inventory_group') }}</td></tr>
+                        <tr><td class="label">{{ __('reports.closing_inventory_value') }}</td><td class="activity-value">{{ $amount($summary['inventory_value']) }}</td></tr>
+                        <tr><td class="label">{{ __('reports.stock_purchases') }}</td><td class="activity-value">{{ $amount($summary['purchases']) }}</td></tr>
                     </table>
                 </div>
             </td>
@@ -136,22 +159,21 @@
     </table>
 
     <div class="note">
-        Purchases are inventory acquisitions and are not treated as operating expenses. Gross profit = sales revenue − historical cost of goods sold.
-        Net operating profit = gross profit − other operating expenses. Closing inventory is valued at weighted-average cost.
+        {{ __('reports.pdf_note') }}
     </div>
 
     <div class="signature">
         <div class="signature-line">
             <div class="signature-name">{{ $administratorName }}</div>
-            <div class="signature-role">Chamber administrator · {{ $chamberName }}</div>
+            <div class="signature-role">{{ __('reports.signature_role', ['chamber' => $chamberName]) }}</div>
         </div>
     </div>
 
     <div class="footer">
         <table>
             <tr>
-                <td>Homeo-Hall · Private chamber financial report</td>
-                <td class="footer-right">© {{ $generatedAt->format('Y') }} Homeo-Hall. All rights reserved.</td>
+                <td>{{ __('reports.footer_copy') }}</td>
+                <td class="footer-right">{{ __('reports.copyright', ['year' => localized_number($generatedAt->year)]) }}</td>
             </tr>
         </table>
     </div>

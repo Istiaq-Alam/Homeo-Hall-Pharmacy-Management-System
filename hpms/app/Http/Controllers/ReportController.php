@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Setting;
+use App\Services\PdfRenderer;
 use App\Services\ReportService;
 use App\Support\ChamberContext;
 use App\Support\SimpleXlsxWriter;
@@ -44,7 +45,7 @@ class ReportController extends Controller
             $period = $month->subMonths($offset);
             $data = $reports->summary($period->toDateString(), $period->endOfMonth()->toDateString());
 
-            return ['label' => $period->format('M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'cogs' => $data['cogs'], 'profit' => $data['net_profit']];
+            return ['label' => localized_date($period, 'M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'cogs' => $data['cogs'], 'profit' => $data['net_profit']];
         });
 
         return view('reports.monthly', compact('range', 'month', 'summary', 'comparison'));
@@ -57,7 +58,7 @@ class ReportController extends Controller
         $months = collect(range(1, 12))->map(function (int $month) use ($year, $reports): array {
             $date = CarbonImmutable::create($year, $month, 1);
 
-            return ['label' => $date->format('M'), ...$reports->summary($date->startOfMonth()->toDateString(), $date->endOfMonth()->toDateString())];
+            return ['label' => localized_date($date, 'M'), ...$reports->summary($date->startOfMonth()->toDateString(), $date->endOfMonth()->toDateString())];
         });
 
         return view('reports.yearly', compact('year', 'months'));
@@ -117,9 +118,15 @@ class ReportController extends Controller
 
         return response()->streamDownload(function () use ($summary): void {
             $output = fopen('php://output', 'w');
-            fputcsv($output, ['Metric', 'Value']);
-            foreach (['sales' => 'Sales Revenue', 'purchases' => 'Purchases', 'cogs' => 'COGS', 'gross_profit' => 'Gross Profit', 'expenses' => 'Other Expenses', 'net_profit' => 'Net Operating Profit', 'units_sold' => 'Units Sold', 'units_purchased' => 'Units Purchased'] as $key => $label) {
-                fputcsv($output, [$label, $summary[$key]]);
+
+            // Bengali text needs a UTF-8 BOM so spreadsheet apps do not mangle it.
+            if (app()->getLocale() === 'bn') {
+                fwrite($output, "\xEF\xBB\xBF");
+            }
+
+            fputcsv($output, [__('reports.metric'), __('reports.value')]);
+            foreach (['sales' => 'sales_revenue', 'purchases' => 'purchases', 'cogs' => 'cogs', 'gross_profit' => 'gross_profit', 'expenses' => 'other_expenses', 'net_profit' => 'net_operating_profit', 'units_sold' => 'units_sold', 'units_purchased' => 'units_purchased'] as $key => $labelKey) {
+                fputcsv($output, [__('reports.'.$labelKey), $summary[$key]]);
             }
             fclose($output);
         }, 'homeo-hall-report-'.$range['from'].'-'.$range['to'].'.csv', ['Content-Type' => 'text/csv']);
@@ -130,9 +137,9 @@ class ReportController extends Controller
         $this->validateDates($request);
         $range = $reports->range($request->input('from', now()->toDateString()), $request->input('to', now()->toDateString()));
         $summary = $reports->summary($range['from'], $range['to']);
-        $rows = [['Homeo-Hall financial report'], ['Date range', $range['from'].' to '.$range['to']], [], ['Metric', 'Value']];
-        foreach (['sales' => 'Sales revenue', 'purchases' => 'Purchases', 'cogs' => 'COGS', 'gross_profit' => 'Gross profit', 'expenses' => 'Other operating expenses', 'net_profit' => 'Net operating profit', 'units_sold' => 'Units sold', 'units_purchased' => 'Units purchased', 'inventory_value' => 'Closing inventory value'] as $key => $label) {
-            $rows[] = [$label, (float) $summary[$key]];
+        $rows = [[__('reports.excel_title')], [__('reports.date_range'), __('reports.range', ['from' => localized_date($range['from']), 'to' => localized_date($range['to'])])], [], [__('reports.metric'), __('reports.value')]];
+        foreach (['sales' => 'sales_revenue', 'purchases' => 'purchases', 'cogs' => 'cogs', 'gross_profit' => 'gross_profit', 'expenses' => 'other_operating_expenses', 'net_profit' => 'net_operating_profit', 'units_sold' => 'units_sold', 'units_purchased' => 'units_purchased', 'inventory_value' => 'closing_inventory_value'] as $key => $labelKey) {
+            $rows[] = [__('reports.'.$labelKey), (float) $summary[$key]];
         }
         $path = app(SimpleXlsxWriter::class)->download($rows, 'report.xlsx');
 
@@ -147,8 +154,8 @@ class ReportController extends Controller
 
         $user = $request->user();
         $settings = Setting::query()->pluck('value', 'key');
-        $chamberName = trim((string) (($settings['chamber_name'] ?? null) ?: app(ChamberContext::class)->chamber()?->name ?: 'Chamber'));
-        $administratorName = trim((string) (($settings['owner_name'] ?? null) ?: $user->name ?: 'Chamber administrator'));
+        $chamberName = trim((string) (($settings['chamber_name'] ?? null) ?: app(ChamberContext::class)->chamber()?->name ?: __('common.chamber')));
+        $administratorName = trim((string) (($settings['owner_name'] ?? null) ?: $user->name ?: __('reports.administrator_fallback')));
         $generatedAt = now()->timezone(config('app.timezone'));
         $logoData = null;
 
@@ -156,10 +163,15 @@ class ReportController extends Controller
             $logoData = 'data:'.Storage::disk('public')->mimeType($settings['chamber_logo']).';base64,'.base64_encode(Storage::disk('public')->get($settings['chamber_logo']));
         }
 
-        $pdf = app('dompdf.wrapper')->loadView('reports.pdf', compact('range', 'summary', 'chamberName', 'administratorName', 'generatedAt', 'logoData'));
-        $pdf->setPaper('a4', 'portrait');
+        $renderer = app(PdfRenderer::class);
+        $engine = $renderer->driver();
+        $fontBase = $renderer->assetBasePath();
+        $html = view('reports.pdf', compact('range', 'summary', 'chamberName', 'administratorName', 'generatedAt', 'logoData', 'engine', 'fontBase'))->render();
 
-        return $pdf->download('homeo-hall-report-'.$range['from'].'-'.$range['to'].'.pdf');
+        return response()->make($renderer->render($html), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="homeo-hall-report-'.$range['from'].'-'.$range['to'].'.pdf"',
+        ]);
     }
 
     private function validateDates(Request $request): void

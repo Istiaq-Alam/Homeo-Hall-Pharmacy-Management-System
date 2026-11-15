@@ -25,7 +25,7 @@ class AdminConsoleController extends Controller
         $today = CarbonImmutable::today(config('app.timezone'));
         $monthStart = $today->startOfMonth()->toDateString();
         $monthEnd = $today->toDateString();
-        $monthLabel = $today->format('F Y');
+        $monthLabel = localized_date($today, 'F Y');
 
         $chambers = Chamber::query()
             ->with(['users' => fn ($query) => $query->orderBy('name')])
@@ -139,7 +139,7 @@ class AdminConsoleController extends Controller
         if ($request->hasFile('profile_image')) {
             $newAvatar = $request->file('profile_image')->store('avatars', 'public');
             if (! $newAvatar) {
-                return back()->withErrors(['profile_image' => 'The profile image could not be stored. Please try again.'])->withInput();
+                return back()->withErrors(['profile_image' => __('admin.image_store_error')])->withInput();
             }
             $admin->avatar_path = $newAvatar;
         } elseif ($request->boolean('remove_profile_image')) {
@@ -164,7 +164,7 @@ class AdminConsoleController extends Controller
             SecurityLog::record(SecurityLog::PROFILE_UPDATED, 'Updated their own profile.', $admin);
         }
 
-        return back()->with('success', 'Admin profile updated successfully.');
+        return back()->with('success', __('admin.profile_updated_success'));
     }
 
     public function activate(Request $request, Chamber $chamber): RedirectResponse
@@ -173,6 +173,14 @@ class AdminConsoleController extends Controller
 
         app(ChamberContext::class)->set($chamber->id);
 
-        return redirect()->route('dashboard')->with('success', 'Now managing '.$chamber->name.'.');
+        return redirect()->route('dashboard')->with('success', __('admin.now_managing', ['name' => $chamber->name]));
+    }
+
+    public function clearSecurityLog(): RedirectResponse
+    {
+        $deleted = SecurityLog::query()->delete();
+
+        return redirect()->to(route('admin.index').'#security-log')
+            ->with('success', __('admin.security_log_cleared', ['count' => localized_number($deleted)]));
     }
 }

@@ -39,7 +39,7 @@ class PurchaseController extends Controller
         ]);
         $purchase = $transactions->recordPurchase($data, (int) $request->user()->id);
 
-        return redirect()->route('purchases.show', $purchase)->with('success', 'Purchase recorded and stock updated.');
+        return redirect()->route('purchases.show', $purchase)->with('success', __('purchases.flash.recorded'));
     }
 
     public function show(Purchase $purchase): View
@@ -52,6 +52,6 @@ class PurchaseController extends Controller
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $transactions->cancelPurchase($purchase, $data['reason']);
 
-        return back()->with('success', 'Purchase cancelled and stock reversed.');
+        return back()->with('success', __('purchases.flash.cancelled'));
     }
 }

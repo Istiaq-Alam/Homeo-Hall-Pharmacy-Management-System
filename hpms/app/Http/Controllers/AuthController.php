@@ -23,12 +23,12 @@ class AuthController extends Controller
         $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
         $key = Str::lower($request->string('email')->toString()).'|'.$request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
-            throw ValidationException::withMessages(['email' => 'Too many login attempts. Try again in '.RateLimiter::availableIn($key).' seconds.']);
+            throw ValidationException::withMessages(['email' => __('auth.too_many_attempts', ['seconds' => localized_number(RateLimiter::availableIn($key))])]);
         }
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
             SecurityLog::record(SecurityLog::SIGN_IN_FAILED, 'Failed sign-in attempt for '.$credentials['email'].'.');
-            throw ValidationException::withMessages(['email' => 'These credentials do not match our records.']);
+            throw ValidationException::withMessages(['email' => __('auth.invalid_credentials')]);
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();

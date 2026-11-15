@@ -49,6 +49,32 @@ class SecurityLogTest extends TestCase
             ->assertSee('security-admin@example.com');
     }
 
+    public function test_admin_can_delete_all_security_log_entries(): void
+    {
+        $admin = User::factory()->admin()->create();
+        SecurityLog::record(SecurityLog::SIGN_IN, 'Signed in successfully.', $admin);
+        SecurityLog::record(SecurityLog::SIGN_OUT, 'Signed out.', $admin);
+
+        $this->actingAs($admin)->delete(route('admin.security-log.clear'))
+            ->assertRedirect(route('admin.index').'#security-log')
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseCount('security_logs', 0);
+        $this->actingAs($admin)->get(route('admin.index'))
+            ->assertOk()
+            ->assertSee(__('admin.no_events'));
+    }
+
+    public function test_only_admins_can_delete_the_security_log(): void
+    {
+        $owner = User::factory()->owner()->create();
+        SecurityLog::record(SecurityLog::SIGN_IN, 'Signed in successfully.', $owner);
+
+        $this->actingAs($owner)->delete(route('admin.security-log.clear'))->assertForbidden();
+
+        $this->assertDatabaseCount('security_logs', 1);
+    }
+
     public function test_account_creation_and_deletion_are_logged(): void
     {
         $admin = User::factory()->admin()->create(['email' => 'owner-admin@example.com']);

@@ -18,6 +18,24 @@ const loadChartLibrary = async () => {
     return Chart;
 };
 
+const localeSettings = () => window.HPMS_LOCALE || { locale: 'en', digits: null, currency: '৳', messages: {} };
+
+// Numbers are formatted in Latin digits first, then swapped for Bengali digits
+// for display only, so no calculation ever happens on localized numerals.
+const localizeDigits = (value) => {
+    const text = String(value);
+    const digits = localeSettings().digits;
+
+    return digits ? text.replace(/[0-9]/g, (digit) => digits[Number(digit)]) : text;
+};
+
+const formatNumber = (value, decimals = 0) => localizeDigits(Number(value || 0).toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+}));
+
+const formatMoney = (value) => localeSettings().currency + formatNumber(value, 2);
+
 const themeTokens = () => getComputedStyle(document.documentElement);
 const themeColor = (token, fallback) => themeTokens().getPropertyValue(token).trim() || fallback;
 
@@ -127,7 +145,13 @@ document.addEventListener('alpine:init', () => {
 
         stockLabel(index) {
             const medicine = this.medicine(index);
-            return medicine ? `${medicine.stock} ${medicine.unit} in stock` : '';
+            if (!medicine) {
+                return '';
+            }
+
+            const template = localeSettings().messages.stock_label || ':stock :unit in stock';
+
+            return template.replace(':stock', formatNumber(medicine.stock)).replace(':unit', medicine.unit);
         },
 
         lineTotal(index) {
@@ -139,7 +163,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         format(value) {
-            return '৳' + Number(value || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return formatMoney(value);
         },
     }));
 });
@@ -174,10 +198,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { labels: { usePointStyle: true, boxWidth: 7, color: themeColor('--t-body', '#555') } } },
+                plugins: {
+                    legend: { labels: { usePointStyle: true, boxWidth: 7, color: themeColor('--t-body', '#555') } },
+                    tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatMoney(context.parsed.y)}` } },
+                },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: themeColor('--t-muted', '#7a7a7a') } },
-                    y: { beginAtZero: true, grid: { color: themeColor('--t-line-soft', '#f0f0f0') }, ticks: { color: themeColor('--t-muted', '#7a7a7a') } },
+                    y: { beginAtZero: true, grid: { color: themeColor('--t-line-soft', '#f0f0f0') }, ticks: { color: themeColor('--t-muted', '#7a7a7a'), callback: (value) => formatNumber(value) } },
                 },
             },
         }));

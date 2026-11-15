@@ -24,7 +24,7 @@ const showIosInstructions = () => {
     if (typeof installDialog.showModal === 'function') {
         installDialog.showModal();
     } else {
-        window.alert('Tap the Share button in Safari, then choose “Add to Home Screen”.');
+        window.alert(window.HPMS_LOCALE?.messages?.install_share || 'Tap the Share button in Safari, then choose “Add to Home Screen”.');
     }
 };
 

@@ -39,7 +39,7 @@ class MedicineController extends Controller
     {
         $medicine = Medicine::create($this->validated($request));
 
-        return redirect()->route('medicines.show', $medicine)->with('success', 'Medicine added successfully.');
+        return redirect()->route('medicines.show', $medicine)->with('success', __('medicines.flash.added'));
     }
 
     public function show(Medicine $medicine): View
@@ -56,14 +56,14 @@ class MedicineController extends Controller
     {
         $medicine->update($this->validated($request, $medicine));
 
-        return redirect()->route('medicines.show', $medicine)->with('success', 'Medicine updated successfully.');
+        return redirect()->route('medicines.show', $medicine)->with('success', __('medicines.flash.updated'));
     }
 
     public function deactivate(Medicine $medicine): RedirectResponse
     {
         $medicine->update(['is_active' => false]);
 
-        return redirect()->route('medicines.index')->with('success', 'Medicine deactivated.');
+        return redirect()->route('medicines.index')->with('success', __('medicines.flash.deactivated'));
     }
 
     public function categories(): View
@@ -77,7 +77,7 @@ class MedicineController extends Controller
         $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('medicine_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
         ($category ?? new MedicineCategory)->fill($data)->save();
 
-        return back()->with('success', 'Medicine category saved.');
+        return back()->with('success', __('medicines.flash.category_saved'));
     }
 
     public function adjustmentForm(): View
@@ -91,7 +91,7 @@ class MedicineController extends Controller
         $data = $request->validate(['medicine_id' => ['required', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])], 'quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'reason' => ['required', 'string', 'max:255'], 'adjustment_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000']]);
         $transactions->adjustStock($data, (int) $request->user()->id);
 
-        return redirect()->route('medicines.index')->with('success', 'Stock adjustment recorded.');
+        return redirect()->route('medicines.index')->with('success', __('medicines.flash.adjustment_recorded'));
     }
 
     /** @return array<string, mixed> */

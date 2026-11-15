@@ -35,9 +35,10 @@ class AdminAccountController extends Controller
             UserRole::Staff => $chambers->createStaff(Chamber::query()->findOrFail($data['chamber_id']), $data),
         };
 
-        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, $role->label().' account created for '.$user->email.'.', $request->user());
+        $message = __('settings.account_created', ['role' => $role->label(), 'email' => $user->email]);
+        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, $message, $request->user());
 
-        return redirect()->route('admin.index')->with('success', $role->label().' account created for '.$user->email.'.');
+        return redirect()->route('admin.index')->with('success', $message);
     }
 
     public function storeStaff(Request $request, ChamberProvisioner $chambers): RedirectResponse
@@ -53,9 +54,10 @@ class AdminAccountController extends Controller
         ]);
 
         $staff = $chambers->createStaff($owner->chamber, $data);
-        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, 'Staff account created for '.$staff->email.' in '.$owner->chamber->name.'.', $owner);
+        $message = __('settings.staff_created', ['email' => $staff->email, 'chamber' => $owner->chamber->name]);
+        SecurityLog::record(SecurityLog::ACCOUNT_CREATED, $message, $owner);
 
-        return back()->with('success', 'Staff account created for '.$staff->email.' and assigned to '.$owner->chamber->name.'.');
+        return back()->with('success', $message);
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
@@ -100,11 +102,9 @@ class AdminAccountController extends Controller
             $this->deleteImage($avatarPath, 'avatars/');
         }
 
-        $message = 'Account for '.$user->email.' deleted.';
-        if ($removeChamber) {
-            $message .= ' Their chamber and all of its data were removed';
-            $message .= $removedAccounts > 1 ? ', including '.($removedAccounts - 1).' chamber '.str('account')->plural($removedAccounts - 1).'.' : '.';
-        }
+        $message = $removeChamber
+            ? __('settings.account_deleted_with_chamber', ['email' => $user->email, 'count' => localized_number($removedAccounts - 1)])
+            : __('settings.account_deleted', ['email' => $user->email]);
 
         SecurityLog::record(SecurityLog::ACCOUNT_DELETED, $message, $admin);
 
@@ -120,9 +120,10 @@ class AdminAccountController extends Controller
         $avatarPath = $user->avatar_path;
         $user->delete();
         $this->deleteImage($avatarPath, 'avatars/');
-        SecurityLog::record(SecurityLog::ACCOUNT_DELETED, 'Staff account for '.$user->email.' removed from '.$owner->chamber->name.'.', $owner);
+        $message = __('settings.staff_removed', ['email' => $user->email, 'chamber' => $owner->chamber->name]);
+        SecurityLog::record(SecurityLog::ACCOUNT_DELETED, $message, $owner);
 
-        return back()->with('success', 'Staff account for '.$user->email.' removed from '.$owner->chamber->name.'.');
+        return back()->with('success', $message);
     }
 
     private function deleteChamberData(?int $chamberId): void

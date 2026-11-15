@@ -31,13 +31,13 @@ class DashboardController extends Controller
         $chart = $months->map(function (CarbonImmutable $month) use ($reports): array {
             $data = $reports->summary($month->startOfMonth()->toDateString(), $month->endOfMonth()->toDateString());
 
-            return ['label' => $month->format('M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'profit' => $data['net_profit']];
+            return ['label' => localized_date($month, 'M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'profit' => $data['net_profit']];
         });
         $activity = collect()
-            ->merge(Sale::query()->latest('sale_date')->limit(5)->get()->map(fn (Sale $sale): array => ['label' => $sale->sale_number, 'detail' => 'Sale · ৳'.number_format((float) $sale->total_amount, 2), 'date' => $sale->sale_date, 'url' => route('sales.show', $sale)]))
-            ->merge(Purchase::query()->latest('purchase_date')->limit(5)->get()->map(fn (Purchase $purchase): array => ['label' => $purchase->purchase_number, 'detail' => 'Purchase · ৳'.number_format((float) $purchase->total_amount, 2), 'date' => $purchase->purchase_date, 'url' => route('purchases.show', $purchase)]))
-            ->merge(Expense::query()->latest('expense_date')->limit(5)->get()->map(fn (Expense $expense): array => ['label' => $expense->description, 'detail' => 'Expense · ৳'.number_format((float) $expense->amount, 2), 'date' => $expense->expense_date, 'url' => route('expenses.index')]))
-            ->merge(StockMovement::query()->with('medicine')->latest('movement_date')->limit(5)->get()->map(fn (StockMovement $movement): array => ['label' => $movement->medicine->name, 'detail' => 'Stock · '.$movement->movement_type.' · '.abs($movement->quantity), 'date' => $movement->movement_date, 'url' => route('reports.stock-movements')]))
+            ->merge(Sale::query()->latest('sale_date')->limit(5)->get()->map(fn (Sale $sale): array => ['label' => $sale->sale_number, 'detail' => __('dashboard.activity_sale', ['amount' => money($sale->total_amount)]), 'date' => $sale->sale_date, 'url' => route('sales.show', $sale)]))
+            ->merge(Purchase::query()->latest('purchase_date')->limit(5)->get()->map(fn (Purchase $purchase): array => ['label' => $purchase->purchase_number, 'detail' => __('dashboard.activity_purchase', ['amount' => money($purchase->total_amount)]), 'date' => $purchase->purchase_date, 'url' => route('purchases.show', $purchase)]))
+            ->merge(Expense::query()->latest('expense_date')->limit(5)->get()->map(fn (Expense $expense): array => ['label' => $expense->description, 'detail' => __('dashboard.activity_expense', ['amount' => money($expense->amount)]), 'date' => $expense->expense_date, 'url' => route('expenses.index')]))
+            ->merge(StockMovement::query()->with('medicine')->latest('movement_date')->limit(5)->get()->map(fn (StockMovement $movement): array => ['label' => $movement->medicine->name, 'detail' => __('dashboard.activity_stock', ['type' => default_label($movement->movement_type, 'movements'), 'quantity' => localized_number(abs($movement->quantity))]), 'date' => $movement->movement_date, 'url' => route('reports.stock-movements')]))
             ->sortByDesc(fn (array $item): string => (string) $item['date'])
             ->take(8)->values();
 

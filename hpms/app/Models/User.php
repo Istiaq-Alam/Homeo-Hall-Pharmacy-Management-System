@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path', 'theme'])]
+#[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path', 'theme', 'locale'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -71,6 +71,6 @@ class User extends Authenticatable
 
     public function roleLabel(): string
     {
-        return $this->role?->label() ?? 'Chamber user';
+        return $this->role?->label() ?? __('roles.chamber_user');
     }
 }

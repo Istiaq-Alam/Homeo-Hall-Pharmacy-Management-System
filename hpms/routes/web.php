@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
@@ -58,9 +59,9 @@ Route::get('/manifest.webmanifest', function () {
 
     return response()->json([
         'id' => '/',
-        'name' => $name.' · Chamber management',
+        'name' => $name.' · '.__('common.chamber_management'),
         'short_name' => $shortName,
-        'description' => 'Private homeopathic chamber inventory, sales, purchases, expenses, and reports.',
+        'description' => __('common.manifest_description'),
         'start_url' => '/dashboard',
         'scope' => '/',
         'display' => 'standalone',
@@ -68,7 +69,7 @@ Route::get('/manifest.webmanifest', function () {
         'orientation' => 'any',
         'background_color' => '#ffffff',
         'theme_color' => '#f5f5f7',
-        'lang' => 'en',
+        'lang' => app()->getLocale(),
         'dir' => 'ltr',
         'categories' => ['medical', 'business', 'productivity'],
         'prefer_related_applications' => false,
@@ -80,14 +81,16 @@ Route::get('/manifest.webmanifest', function () {
             ['src' => $brandIcon('maskable512', '/icons/icon-maskable-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
         'shortcuts' => [
-            ['name' => 'Record a sale', 'short_name' => 'New sale', 'url' => '/sales/create', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
-            ['name' => 'Medicines', 'short_name' => 'Medicines', 'url' => '/medicines', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
-            ['name' => 'Reports', 'short_name' => 'Reports', 'url' => '/reports', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
+            ['name' => __('sales.record'), 'short_name' => __('navigation.sales'), 'url' => '/sales/create', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
+            ['name' => __('navigation.medicines'), 'short_name' => __('navigation.medicines'), 'url' => '/medicines', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
+            ['name' => __('navigation.reports'), 'short_name' => __('navigation.reports'), 'url' => '/reports', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
         ],
     ], 200, [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         ->header('Content-Type', 'application/manifest+json')
         ->header('Cache-Control', 'private, no-cache, must-revalidate');
 })->name('manifest');
+
+Route::post('/language', [LanguageController::class, 'store'])->name('language.update');
 
 Route::redirect('/', '/dashboard');
 Route::middleware('guest')->group(function (): void {
@@ -106,6 +109,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/admin', [AdminConsoleController::class, 'index'])->name('admin.index');
         Route::put('/admin/profile', [AdminConsoleController::class, 'updateProfile'])->name('admin.profile.update');
         Route::post('/admin/chambers/{chamber}/activate', [AdminConsoleController::class, 'activate'])->name('admin.chambers.activate');
+        Route::delete('/admin/security-log', [AdminConsoleController::class, 'clearSecurityLog'])->name('admin.security-log.clear');
         Route::post('/admin/accounts', [AdminAccountController::class, 'store'])->name('admin.accounts.store');
         Route::delete('/admin/accounts/{user}', [AdminAccountController::class, 'destroy'])->name('admin.accounts.destroy');
     });

@@ -39,7 +39,7 @@ class SaleController extends Controller
         ]);
         $sale = $transactions->recordSale($data, (int) $request->user()->id);
 
-        return redirect()->route('sales.show', $sale)->with('success', 'Sale recorded and stock updated.');
+        return redirect()->route('sales.show', $sale)->with('success', __('sales.flash.recorded'));
     }
 
     public function show(Sale $sale): View
@@ -52,7 +52,7 @@ class SaleController extends Controller
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $transactions->cancelSale($sale, $data['reason']);
 
-        return back()->with('success', 'Sale cancelled and stock restored.');
+        return back()->with('success', __('sales.flash.cancelled'));
     }
 
     public function price(Request $request): array

@@ -55,7 +55,7 @@ class SettingsController extends Controller
             $extension = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'png');
             $newLogo = $file->storeAs($directory, 'logo.'.$extension, 'public');
             if (! $newLogo) {
-                return back()->withErrors(['chamber_logo' => 'The logo could not be stored. Please try again.'])->withInput();
+                return back()->withErrors(['chamber_logo' => __('settings.flash.logo_error')])->withInput();
             }
             Setting::query()->updateOrCreate(['key' => 'chamber_logo'], ['value' => $newLogo]);
             $this->storeBrandAssets($newLogo, $directory);
@@ -72,7 +72,7 @@ class SettingsController extends Controller
         if ($request->hasFile('owner_avatar')) {
             $newAvatar = $request->file('owner_avatar')->store('avatars', 'public');
             if (! $newAvatar) {
-                return back()->withErrors(['owner_avatar' => 'The profile picture could not be stored. Please try again.'])->withInput();
+                return back()->withErrors(['owner_avatar' => __('settings.flash.avatar_error')])->withInput();
             }
             $user->avatar_path = $newAvatar;
             $this->deleteAvatar($oldAvatar);
@@ -99,7 +99,7 @@ class SettingsController extends Controller
             Chamber::query()->whereKey($chamberId)->update(['name' => $data['chamber_name']]);
         }
 
-        return back()->with('success', 'Settings saved.');
+        return back()->with('success', __('settings.flash.saved'));
     }
 
     public function password(Request $request): RedirectResponse
@@ -108,7 +108,7 @@ class SettingsController extends Controller
         $request->user()->update(['password' => Hash::make($data['password'])]);
         $request->session()->regenerate();
 
-        return back()->with('success', 'Password changed successfully.');
+        return back()->with('success', __('settings.flash.password_changed'));
     }
 
     private function storeBrandAssets(string $logoPath, string $directory): void
