@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('role:admin')->group(function (): void {
         Route::get('/admin', [AdminConsoleController::class, 'index'])->name('admin.index');
+        Route::put('/admin/profile', [AdminConsoleController::class, 'updateProfile'])->name('admin.profile.update');
         Route::post('/admin/chambers/{chamber}/activate', [AdminConsoleController::class, 'activate'])->name('admin.chambers.activate');
         Route::post('/admin/accounts', [AdminAccountController::class, 'store'])->name('admin.accounts.store');
         Route::delete('/admin/accounts/{user}', [AdminAccountController::class, 'destroy'])->name('admin.accounts.destroy');

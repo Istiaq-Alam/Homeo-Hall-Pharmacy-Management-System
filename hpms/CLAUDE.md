@@ -167,3 +167,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 4. CLOSED-LOOP BROWSER QA (Microsoft Playwright MCP):
    - After building or updating any page, open the live localhost URL using Playwright MCP.
    - Click interactive buttons, take a real browser screenshot (take_screenshot), verify that no close (X) button or CTA overflows its card or overlaps text, and fix all visual bugs before completing the task.
+
+## Skill instructions (MANDATORY)
+At the start of every session, read ./skill-instructions.md and follow it for all work in this project.

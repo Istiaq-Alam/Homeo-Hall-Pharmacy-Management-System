@@ -60,27 +60,31 @@ class AdminAccountController extends Controller
         abort_unless($admin->isAdmin(), 403, 'Only a system admin can delete this account.');
         abort_if($user->is($admin), 403, 'You cannot delete the account you are currently signed in with.');
 
-        if ($user->isOwner() && $user->chamber_id !== null && User::query()->where('chamber_id', $user->chamber_id)->whereKeyNot($user->getKey())->exists()) {
-            return back()->withErrors(['account' => 'Remove or reassign the staff in this chamber before deleting its owner.']);
-        }
-
         $removeChamber = $user->isOwner() && $user->chamber_id !== null;
         $chamberId = $removeChamber ? $user->chamber_id : null;
         $logoPath = $removeChamber
             ? DB::table('settings')->where('chamber_id', $chamberId)->where('key', 'chamber_logo')->value('value')
             : null;
-        $avatarPath = $user->avatar_path;
+        $avatarPaths = $removeChamber
+            ? User::query()->where('chamber_id', $chamberId)->whereNotNull('avatar_path')->pluck('avatar_path')->all()
+            : array_filter([$user->avatar_path]);
+        $removedAccounts = $removeChamber
+            ? User::query()->where('chamber_id', $chamberId)->where('role', '!=', UserRole::Admin)->count()
+            : 1;
 
         DB::transaction(function () use ($user, $chamberId, $removeChamber): void {
             if ($removeChamber) {
+                // A chamber cannot exist without its owner, so the owner's chamber
+                // is removed together with every account and record that belongs to it.
                 $this->deleteChamberData($chamberId);
+                User::query()->where('chamber_id', $chamberId)->where('role', '!=', UserRole::Admin)->delete();
+                User::query()->where('chamber_id', $chamberId)->update(['chamber_id' => null]);
+                Chamber::query()->whereKey($chamberId)->delete();
+
+                return;
             }
 
             $user->delete();
-
-            if ($removeChamber) {
-                Chamber::query()->whereKey($chamberId)->delete();
-            }
         });
 
         if ($removeChamber && app(ChamberContext::class)->id() === $chamberId) {
@@ -88,11 +92,14 @@ class AdminAccountController extends Controller
         }
 
         $this->deleteImage($logoPath, 'branding/');
-        $this->deleteImage($avatarPath, 'avatars/');
+        foreach ($avatarPaths as $avatarPath) {
+            $this->deleteImage($avatarPath, 'avatars/');
+        }
 
         $message = 'Account for '.$user->email.' deleted.';
         if ($removeChamber) {
-            $message .= ' Their chamber and all of its data were removed.';
+            $message .= ' Their chamber and all of its data were removed';
+            $message .= $removedAccounts > 1 ? ', including '.($removedAccounts - 1).' chamber '.str('account')->plural($removedAccounts - 1).'.' : '.';
         }
 
         return redirect()->route('admin.index')->with('success', $message);

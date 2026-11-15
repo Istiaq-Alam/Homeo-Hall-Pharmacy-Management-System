@@ -1,11 +1,41 @@
 {
   "version": 2,
   "skills": {
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/brainstorming/SKILL.md",
+      "computedHash": "a7424777b7f81e3eb9b4556d29fe233553736d8255780d3e1feea190fef61fef"
+    },
     "design-taste-frontend": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "b10eab0a9684cd09cf34c31ef04a3bf530a5f4404422f9c520d42372d670c7fc"
+    },
+    "diagnosing-superpowers": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/diagnosing-superpowers/SKILL.md",
+      "computedHash": "44d0295c3d59d6418f80c96e40d8e7b7ece99513ab6e63e5d04b1cf87cc5bbab"
+    },
+    "dispatching-parallel-agents": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/dispatching-parallel-agents/SKILL.md",
+      "computedHash": "d799e464fdfb0edc80b3b7ad7cce03e64ee07fc5db231c988688a81438503659"
+    },
+    "executing-plans": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/executing-plans/SKILL.md",
+      "computedHash": "58b364f6e3f64602c7cfd0b34ceaad9de95d41fe7e4b46b274843ba19fc01ccc"
+    },
+    "finishing-a-development-branch": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/finishing-a-development-branch/SKILL.md",
+      "computedHash": "7e24d821d45b8f10773edd9f1a4be2fac90eedae4f8fc8e70e34e27e44d3f3c0"
     },
     "impeccable": {
       "source": "pbakaus/impeccable",
@@ -13,11 +43,377 @@
       "skillPath": ".agents/skills/impeccable/SKILL.md",
       "computedHash": "ef491197f40a60e4e6b2ef7b71b7959bd919d9f173a4e591e6212b3ec8037b04"
     },
+    "offensive-active-directory": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/active-directory/offensive-active-directory/SKILL.md",
+      "computedHash": "dc2b8fc99a10921ae148cd0003587d38eb4010d81c32c3151366d03e651693eb"
+    },
+    "offensive-advanced-redteam": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/infrastructure/offensive-advanced-redteam/SKILL.md",
+      "computedHash": "84940f38c0ae44e6f5a66d9d094349330b7ec5dd6129b784224ed82acef98f89"
+    },
+    "offensive-anti-forensics": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/forensics/offensive-anti-forensics/SKILL.md",
+      "computedHash": "545176c4cb9c95b62ea3ca1dbb38bb1024c6b9b4061de53d9de67f124fdf677a"
+    },
+    "offensive-api-abuse": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/api/offensive-api-abuse/SKILL.md",
+      "computedHash": "bf6d414829fbafd213a3632aa042c0933057de457e77b10c787117d16c298045"
+    },
+    "offensive-api-security": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/api/offensive-api-security/SKILL.md",
+      "computedHash": "9def5eab1653609cffb770f5c6109b60116e63fda8338ff192014bc1689a666a"
+    },
+    "offensive-bluetooth-ble": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-bluetooth-ble/SKILL.md",
+      "computedHash": "2009fbe4664d5e4e18b2fd279b5e895e8e2492d98eb0c06d2469bd97907a45f6"
+    },
+    "offensive-bluetooth-classic": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-bluetooth-classic/SKILL.md",
+      "computedHash": "b98a6a19ad4edeef0c754c46b806ac626d9150f00b097960beffdb949af9ea18"
+    },
+    "offensive-business-logic": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/web/offensive-business-logic/SKILL.md",
+      "computedHash": "879defb86b1b14b7206bacc09f231bdf1949cdccb3abe080b906adffa329b141"
+    },
+    "offensive-c2-frameworks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/forensics/offensive-c2-frameworks/SKILL.md",
+      "computedHash": "51fd6e590a60e85aab8e462c2afa757f909c58b12a1e5f2be94a63a1d59b1406"
+    },
+    "offensive-cicd-pipeline": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/cicd/offensive-cicd-pipeline/SKILL.md",
+      "computedHash": "e211b0d51c4fd4aa1c5cea6af6dd3dc8d8da97ed5147f323dde8104bdb97ee56"
+    },
+    "offensive-cicd-secrets": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/cicd/offensive-cicd-secrets/SKILL.md",
+      "computedHash": "bd628e7d6b63fac944857bbe43739e99d5355691bddfa8cb04b70c78211a41b2"
+    },
+    "offensive-cloud": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/cloud/offensive-cloud/SKILL.md",
+      "computedHash": "860c7615238b3d06d925d03d96dc7fc49fdcd2c5bcdbef03daa517bf036da327"
+    },
+    "offensive-container-escape": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/container/offensive-container-escape/SKILL.md",
+      "computedHash": "9a75d48d43aa6e75b5e1f61082d961513b55b17ff5c0d4830ba83b01def6e731"
+    },
+    "offensive-crypto-attacks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/crypto/offensive-crypto-attacks/SKILL.md",
+      "computedHash": "ceddb8dea916f05746ef73c0de34dc55f21ffac64133ebe2d6bc15e46a5562a6"
+    },
+    "offensive-data-exfiltration": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/post-exploitation/offensive-data-exfiltration/SKILL.md",
+      "computedHash": "b80166c72d10b69af85c3dde80fd10f40bd0f73ca4f89323417cfb93fbdcfd21"
+    },
+    "offensive-deauth-disassoc": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-deauth-disassoc/SKILL.md",
+      "computedHash": "9f1b2d43aaff7e08cd8865841ad3c230f1d8867348792bfdb57d0cf51ba94ab8"
+    },
+    "offensive-dependency-confusion": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/supply-chain/offensive-dependency-confusion/SKILL.md",
+      "computedHash": "01a1dad4135f1d0a53f75550547c3c26cdb579a30a7c8911121fef4df1ece015"
+    },
+    "offensive-deserialization": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/web/offensive-deserialization/SKILL.md",
+      "computedHash": "cef8ebaabbb1805b847c7a0f5cd64fd0e6fd5c5adcd9831b344b885850156efd"
+    },
+    "offensive-evil-twin": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-evil-twin/SKILL.md",
+      "computedHash": "bd0d224af044d58636b88db414f359cec2b2103fe11b514e64ff404d1c8881a4"
+    },
+    "offensive-fuzzing": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/fuzzing/offensive-fuzzing/SKILL.md",
+      "computedHash": "4b0857f0a17dcf7a7eec0f39532cb6b929f7933125950637577096bea196fab1"
+    },
+    "offensive-graphql": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/web/offensive-graphql/SKILL.md",
+      "computedHash": "bb8f405523ef1fac2a3bf4ab376c4037aa962745b0b533f8cd8f845a76d0d413"
+    },
+    "offensive-iot": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/iot/offensive-iot/SKILL.md",
+      "computedHash": "8c6875262e64600314c4ccb0562cafe2bdfbdafe13a8786796d64710934e614e"
+    },
+    "offensive-jwt": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/auth/offensive-jwt/SKILL.md",
+      "computedHash": "9c124c2a1d23cede8ba6d298ac29c60827bd5992c1bb2ff8726381e1fd4c98f6"
+    },
+    "offensive-k8s-attacks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/container/offensive-k8s-attacks/SKILL.md",
+      "computedHash": "9eebeab0074befdbb6392fee957791116c2dff4568f26b8f9909490ee491c81e"
+    },
+    "offensive-krack-fragattacks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-krack-fragattacks/SKILL.md",
+      "computedHash": "4825ca4928019c3339f8af1d32ac4ca9a1374bfd3e59636879bf013e5cc3064d"
+    },
+    "offensive-lateral-movement": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/post-exploitation/offensive-lateral-movement/SKILL.md",
+      "computedHash": "c3048fc69e37a4d409a57aaa3a0c5212d639e7f325d35aa8636e3662d7929811"
+    },
+    "offensive-linux-privesc": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/privesc/offensive-linux-privesc/SKILL.md",
+      "computedHash": "c25e8590909132c43bce5aa8d54901eb93f5c7f107ab92147e1624b219f6e83d"
+    },
+    "offensive-lorawan-sub-ghz": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-lorawan-sub-ghz/SKILL.md",
+      "computedHash": "9f0fde110b69771764c6e65371d974e16bd91f4c4ab3e3ae1fee67f0e9da6f60"
+    },
+    "offensive-mobile": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/mobile/offensive-mobile/SKILL.md",
+      "computedHash": "07d732648e5094823eee7fba57e024c774bf62f54eb5101029b1412e36a0605d"
+    },
+    "offensive-netexec": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/active-directory/offensive-netexec/SKILL.md",
+      "computedHash": "10be5246276304f6ce271126314bb8fbf51af5ddde05e3941f353d06dde0cd2c"
+    },
+    "offensive-network-attacks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/network/offensive-network-attacks/SKILL.md",
+      "computedHash": "d8a51f8f1bcfe4484426b6ea3c1456e780ffc0db357b825a6493416b31fe09aa"
+    },
+    "offensive-osint": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/recon/offensive-osint/SKILL.md",
+      "computedHash": "5b7876c4308c1b4d0670812a9f5a3f0586b20bc49bc47373b6022d4ccf06949c"
+    },
+    "offensive-persistence": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/post-exploitation/offensive-persistence/SKILL.md",
+      "computedHash": "e78a85b25ce6d2e8742f48fa6a0e74a59ce257c83d71767453c237edd3ffacb4"
+    },
+    "offensive-phishing": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/social-engineering/offensive-phishing/SKILL.md",
+      "computedHash": "646ae96862594d3c7d81bb28d8fd3f7edcc26d6a641d55d3c0f21f6213f50e1f"
+    },
+    "offensive-reporting": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/utility/offensive-reporting/SKILL.md",
+      "computedHash": "d9b53645def0ea10c9b5d4ea55a0634f5f954e757246dc2c7c8a19bb399a69e0"
+    },
+    "offensive-shellcode": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/infrastructure/offensive-shellcode/SKILL.md",
+      "computedHash": "abec18fd92ca14ff7ec5495e5d31a65514179274bc2103075c1078f65fb4c3ac"
+    },
+    "offensive-social-engineering": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/social-engineering/offensive-social-engineering/SKILL.md",
+      "computedHash": "672dd6b29d478df354b0065178a70d9cd6376bc69b4c3f798ed4e07e45f4dcc1"
+    },
+    "offensive-sqli": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/web/offensive-sqli/SKILL.md",
+      "computedHash": "ad59218081e0cb868a3e279935beaf79d0a3556253177f2186a4b515c830caef"
+    },
+    "offensive-ssti": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/web/offensive-ssti/SKILL.md",
+      "computedHash": "0fcfe97d02f7dca49e66e29ceb42ce1bfc1806a48c6ff0126e6f9a3d808a8988"
+    },
+    "offensive-supply-chain": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/supply-chain/offensive-supply-chain/SKILL.md",
+      "computedHash": "3950df99ad550a858d9200cedf9c55160bfd095935a4dbd917a4ff6514a32eab"
+    },
+    "offensive-tls-attacks": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/crypto/offensive-tls-attacks/SKILL.md",
+      "computedHash": "fecdbb60eafd801b96e153e5bcdf7936df25df3bcc5846b05a216d776f3edacc"
+    },
+    "offensive-toctou": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/exploit-dev/offensive-toctou/SKILL.md",
+      "computedHash": "ffd0304be1c2905d9022d548f7e9ad7f9017277bab29fdf7b03e12d98d55744f"
+    },
+    "offensive-wifi": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wifi/SKILL.md",
+      "computedHash": "6fcc4401eb798ba341baa1f0084ae65a2ab4b9ae76ed9711c1f052910a483322"
+    },
+    "offensive-wifi-recon": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wifi-recon/SKILL.md",
+      "computedHash": "241d045a3928c29cfecc4c3442baf964f61c34ce003c02fb6211b00ae3f5d53f"
+    },
+    "offensive-windows-privesc": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/privesc/offensive-windows-privesc/SKILL.md",
+      "computedHash": "166f075f160c917585b8ae97531a47cbfcee997c4a08e8c9003bf9fe4db9c7c8"
+    },
+    "offensive-wpa-enterprise": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wpa-enterprise/SKILL.md",
+      "computedHash": "4a89865fc2cd731402b96b81f9c6bc9d04052d7305af203161d266fb1e149c7a"
+    },
+    "offensive-wpa2-psk": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wpa2-psk/SKILL.md",
+      "computedHash": "a824b48744eb71bf9a784ce7059ef56327216457bc11483fb1f81d6d9944e796"
+    },
+    "offensive-wpa3-sae": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wpa3-sae/SKILL.md",
+      "computedHash": "dcc6e628b7c0d90146a8245f1fe1a5c4a919d699dcc37ab3414218970be41621"
+    },
+    "offensive-wps": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-wps/SKILL.md",
+      "computedHash": "567d1d500f36929e655329d0a9837802ac52cdf7f43e875b97129ef910bcd934"
+    },
+    "offensive-z-wave": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-z-wave/SKILL.md",
+      "computedHash": "a4306e3be1ef0cd9669e264928f1195ef29e481477fdd02d349c03ff7fd05471"
+    },
+    "offensive-zigbee-thread-matter": {
+      "source": "SnailSploit/Claude-Red",
+      "sourceType": "github",
+      "skillPath": "Skills/wireless/offensive-zigbee-thread-matter/SKILL.md",
+      "computedHash": "1b364e2912d267ef508d3b5aa72de108ff1bc08be9d0bdf5df5c8cc6fbe5e1a9"
+    },
+    "receiving-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/receiving-code-review/SKILL.md",
+      "computedHash": "528d336858d6f7d22cfcb887a249409ce682cb7d37a939cb15a82f2576a35876"
+    },
+    "requesting-code-review": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/requesting-code-review/SKILL.md",
+      "computedHash": "32bcc25e8c3315d0150f646ee0067c9d4bfbc7719c34012db9c202e17cce8a14"
+    },
+    "subagent-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/subagent-driven-development/SKILL.md",
+      "computedHash": "da0ad5e635b6ff70c2b6dbf25e51ae6ca1cad6beebfc61a791195675468c492e"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/systematic-debugging/SKILL.md",
+      "computedHash": "79ff0583175346e39431b0dc713b223edd1bd7a7ea2b6c8b78b2fb9a3fed6782"
+    },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/test-driven-development/SKILL.md",
+      "computedHash": "2782702b2cf69ace085ed30d067b6f8bfd2d777ad51770fc5bdae9cb5c1b5c04"
+    },
+    "using-git-worktrees": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/using-git-worktrees/SKILL.md",
+      "computedHash": "b69324cb5e5ba5b846fc2ae2811616008dc6f19858245100e472713190d4c9e4"
+    },
+    "using-superpowers": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/using-superpowers/SKILL.md",
+      "computedHash": "6a9104fac7e16c3cec2bc118943aefd331cac35b4cfabd427cea4dc16337c6a5"
+    },
+    "verification-before-completion": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/verification-before-completion/SKILL.md",
+      "computedHash": "09b0e3a4689c1c38a3b8fc6ef57a1d4165aa33c0013d546dbde9dd348941a319"
+    },
     "web-design-guidelines": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
       "skillPath": "skills/web-design-guidelines/SKILL.md",
       "computedHash": "4f68ae07187fb0d1fb78c88b503d089da4cf5a9d9625d1f2e425b1590bf96d92"
+    },
+    "writing-plans": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/writing-plans/SKILL.md",
+      "computedHash": "ef082ddb5354d736059397133b3682e8a0c85c57906affe47c9da354cbb7c91e"
+    },
+    "writing-skills": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "skillPath": "skills/writing-skills/SKILL.md",
+      "computedHash": "50d87a4c2c6a9d60156ccfdbe844e0a11678968157e494a8a8c02377c273483a"
     }
   }
 }

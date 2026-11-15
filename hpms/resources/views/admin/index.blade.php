@@ -1,14 +1,57 @@
 @extends('layouts.app')
 @section('title', 'Administration')
 @section('content')
-<x-page-heading title="Administration" description="Manage every chamber, owner, staff member, and system administrator.">
-    <x-slot:action><a class="button button-secondary" href="{{ route('settings.index') }}">Chamber settings</a></x-slot:action>
+<x-page-heading title="Admin dashboard" description="System-wide chamber performance and account administration.">
+    <x-slot:action><a class="button button-secondary" href="#admin-profile">Admin profile</a></x-slot:action>
 </x-page-heading>
 
-@if(session('error'))<div class="notice notice-error" role="alert">{{ session('error') }}</div>@endif
+<div class="dashboard-hero admin-dashboard-hero">
+    <div>
+        <p class="hero-eyebrow">Portfolio overview · {{ $monthLabel }} to date</p>
+        <h1>Every chamber, at a glance.</h1>
+        <p>Track sales performance, operating costs, inventory activity, and account access across your entire network.</p>
+        <div class="hero-actions"><a class="button button-primary" href="#chamber-performance">View chamber performance</a><a class="button hero-outline" href="#create-account">Create an account</a></div>
+    </div>
+    <div class="hero-metric"><small>Total sales revenue</small><strong>৳{{ number_format((float) $overview['sales_revenue'], 2) }}</strong><span>{{ number_format((int) $overview['sales_count']) }} completed sales this month</span></div>
+</div>
 
-<div class="content-grid">
-    <div class="card">
+<div class="stat-grid admin-stat-grid">
+    <x-stat-card label="Chambers" :value="number_format($overview['chambers'])" note="All active chambers" />
+    <x-stat-card label="Accounts" :value="number_format($overview['accounts'])" note="Admins, owners, and staff" />
+    <x-stat-card label="Sales revenue" :value="'৳'.number_format((float) $overview['sales_revenue'], 2)" :note="number_format((int) $overview['sales_count']).' completed sales · month to date'" />
+    <x-stat-card label="Estimated net profit" :value="'৳'.number_format((float) $overview['net_profit'], 2)" note="Gross profit less operating expenses" />
+</div>
+
+<div class="card admin-performance-card" id="chamber-performance">
+    <div class="section-title"><div><h2>Chamber performance</h2><p class="field-help">Sales, purchases, expenses, and estimated operating profit · {{ $monthLabel }} to date</p></div><span class="status status-completed">{{ $chambers->count() }} chambers</span></div>
+    <div class="table-wrap is-card-wrap"><table class="table is-card-table admin-performance-table"><thead><tr><th>Chamber</th><th>Owner · accounts</th><th class="numeric">Sales</th><th class="numeric">Revenue</th><th class="numeric">Purchases</th><th class="numeric">Expenses</th><th class="numeric">Est. net profit</th><th>Inventory</th><th>Action</th></tr></thead><tbody>
+        @forelse($chambers as $chamber)
+            @php($owner = $chamber->users->first(fn ($account) => $account->isOwner()))
+            <tr>
+                <td data-label="Chamber"><strong>{{ $chamber->name }}</strong>@if($activeChamber?->is($chamber)) <span class="status status-completed">Managing</span>@endif</td>
+                <td data-label="Owner · accounts">{{ $owner?->name ?: 'Unassigned' }}<br><small>{{ $chamber->users_count }} {{ \Illuminate\Support\Str::plural('account', $chamber->users_count) }}</small></td>
+                <td data-label="Sales" class="numeric">{{ number_format($chamber->monthly_sales_count) }}<br><small>{{ number_format($chamber->monthly_units_sold) }} units</small></td>
+                <td data-label="Revenue" class="numeric">৳{{ number_format($chamber->monthly_sales_revenue, 2) }}</td>
+                <td data-label="Purchases" class="numeric">৳{{ number_format($chamber->monthly_purchases_total, 2) }}<br><small>{{ number_format($chamber->monthly_purchases_count) }} transactions</small></td>
+                <td data-label="Expenses" class="numeric">৳{{ number_format($chamber->monthly_expenses_total, 2) }}<br><small>{{ number_format($chamber->monthly_expenses_count) }} transactions</small></td>
+                <td data-label="Est. net profit" class="numeric"><strong>৳{{ number_format($chamber->monthly_net_profit, 2) }}</strong></td>
+                <td data-label="Inventory">{{ number_format($chamber->medicine_count) }} medicines<br><small>{{ number_format($chamber->stock_units) }} units in stock</small></td>
+                <td data-label="Action">
+                    @if($activeChamber?->is($chamber))
+                        <span class="status status-completed">Open</span>
+                    @else
+                        <form method="POST" action="{{ route('admin.chambers.activate', $chamber) }}">@csrf<button class="button button-secondary button-small" type="submit" aria-label="Manage {{ $chamber->name }}">Open</button></form>
+                    @endif
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="9" data-label="">No chambers yet. Create a chamber owner to get started.</td></tr>
+        @endforelse
+    </tbody></table></div>
+</div>
+
+<div class="content-grid admin-management-grid">
+    <div class="card" id="create-account">
         <div class="section-title"><h2>Create an account</h2></div>
         <p class="report-note" style="margin-top:0">Admins manage the whole system. Chamber owners get a new chamber. Staff are assigned to an existing chamber by an owner or admin.</p>
         <form method="POST" action="{{ route('admin.accounts.store') }}" class="form-stack" x-data="{ role: '{{ old('role', 'owner') }}' }">@csrf
@@ -27,27 +70,21 @@
         </form>
     </div>
 
-    <div class="card">
-        <div class="section-title"><h2>Chambers</h2><span class="status status-inactive">{{ $chambers->count() }} total</span></div>
-        <div class="table-wrap is-card-wrap"><table class="table is-card-table"><thead><tr><th>Chamber</th><th>Owner</th><th>Accounts</th><th>Actions</th></tr></thead><tbody>
-            @forelse($chambers as $chamber)
-                @php($owner = $chamber->users->first(fn ($account) => $account->isOwner()))
-                <tr>
-                    <td data-label="Chamber"><strong>{{ $chamber->name }}</strong></td>
-                    <td data-label="Owner">{{ $owner?->name ?: 'Unassigned' }}</td>
-                    <td data-label="Accounts">{{ $chamber->users_count }}</td>
-                    <td data-label="Actions">
-                        @if($activeChamber?->is($chamber))
-                            <span class="status status-completed">Managing</span>
-                        @else
-                            <form method="POST" action="{{ route('admin.chambers.activate', $chamber) }}">@csrf<button class="button button-secondary button-small" type="submit" aria-label="Manage {{ $chamber->name }}">Open</button></form>
-                        @endif
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="4" data-label="">No chambers yet. Create a chamber owner to get started.</td></tr>
-            @endforelse
-        </tbody></table></div>
+    <div class="card" id="admin-profile">
+        @php($admin = auth()->user())
+        <div class="section-title"><div><h2>Admin profile & credentials</h2><p class="field-help">Update your own login, password, and profile image.</p></div></div>
+        <form method="POST" action="{{ route('admin.profile.update') }}" class="form-stack" enctype="multipart/form-data">@csrf @method('PUT')
+            <div class="admin-profile-photo-row"><div class="avatar-preview admin-profile-avatar">@if($admin->avatar_url)<img src="{{ $admin->avatar_url }}" alt="Current Admin profile image">@else<span>{{ strtoupper(substr($admin->name, 0, 1)) }}</span>@endif</div><div class="logo-copy"><label>Profile image<input name="profile_image" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="field-help">PNG, JPG, or WebP up to 2 MB.</p>@if($admin->avatar_url)<label class="checkbox-line"><input name="remove_profile_image" type="checkbox" value="1">Remove current image</label>@endif</div></div>
+            <div class="form-grid">
+                <label>Full name<input name="name" value="{{ old('name', $admin->name) }}" required maxlength="150" autocomplete="name"></label>
+                <label>Email<input name="email" type="email" value="{{ old('email', $admin->email) }}" required maxlength="255" autocomplete="email"></label>
+                <label>Designation<input name="designation" value="{{ old('designation', $admin->designation) }}" maxlength="100" placeholder="System Administrator"></label>
+                <label>Current password <span class="field-help">Required to change email or password</span><input name="current_password" type="password" autocomplete="current-password"></label>
+                <label>New password <span class="field-help">Leave blank to keep current password</span><input name="password" type="password" minlength="12" autocomplete="new-password"></label>
+                <label>Confirm new password<input name="password_confirmation" type="password" minlength="12" autocomplete="new-password"></label>
+            </div>
+            <div><button class="button button-primary" type="submit">Save Admin profile</button></div>
+        </form>
     </div>
 </div>
 
@@ -64,7 +101,7 @@
                     @if($account->is(auth()->user()))
                         <span class="field-help">Current account</span>
                     @else
-                        <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" onsubmit="return confirmAction('Delete this account? If this is a chamber owner with no remaining accounts, the chamber and all of its data will also be permanently deleted. This cannot be undone.')">@csrf @method('DELETE')
+                        <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" onsubmit="return confirmAction('Delete this account? Deleting a chamber owner also permanently deletes their chamber, every staff account in it, and all of its records. Every chamber always belongs to an owner. This cannot be undone.')">@csrf @method('DELETE')
                             <button class="button button-danger button-small" type="submit" aria-label="Delete {{ $account->name }}">Delete</button>
                         </form>
                     @endif

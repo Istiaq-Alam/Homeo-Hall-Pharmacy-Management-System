@@ -28,17 +28,27 @@
         <aside id="sidebar" class="sidebar" :class="menuOpen ? 'sidebar-open' : ''">
             <a href="{{ route('dashboard') }}" class="brand">@if(! empty($appSettings['chamber_logo_url']))<img class="brand-logo" src="{{ $appSettings['chamber_logo_url'] }}" alt="{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }} logo">@else<span class="brand-mark">H</span>@endif<span><strong>{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }}</strong><small>Chamber management</small></span></a>
             <nav class="nav-list" aria-label="Main navigation">
+                @if($layoutUser->isAdmin())<a href="{{ route('admin.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('admin.*') ? 'nav-active' : '' }}"><span><x-icon name="admin" /></span>Administration</a>@endif
                 <a href="{{ route('dashboard') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('dashboard') ? 'nav-active' : '' }}"><span><x-icon name="dashboard" /></span>Dashboard</a>
                 <a href="{{ route('medicines.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('medicines.*') ? 'nav-active' : '' }}"><span><x-icon name="medicine" /></span>Medicines</a>
                 <a href="{{ route('purchases.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('purchases.*') ? 'nav-active' : '' }}"><span><x-icon name="purchase" /></span>Purchases</a>
                 <a href="{{ route('sales.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('sales.*') ? 'nav-active' : '' }}"><span><x-icon name="sale" /></span>Sales</a>
                 <a href="{{ route('expenses.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('expenses.*') ? 'nav-active' : '' }}"><span><x-icon name="expense" /></span>Expenses</a>
                 <a href="{{ route('reports.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('reports.*') ? 'nav-active' : '' }}"><span><x-icon name="report" /></span>Reports</a>
-                @if($layoutUser->isAdmin())<a href="{{ route('admin.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('admin.*') ? 'nav-active' : '' }}"><span><x-icon name="admin" /></span>Administration</a>@endif
                 <a href="{{ route('settings.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('settings.*') ? 'nav-active' : '' }}"><span><x-icon name="settings" /></span>Settings</a>
             </nav>
-            @if($layoutUser->isAdmin() && $layoutChamber)<a class="active-chamber" href="{{ route('admin.index') }}"><span>Managing</span><strong>{{ $layoutChamber->name }}</strong><small>Switch chamber</small></a>@endif
-            <div class="sidebar-bottom"><div class="owner-pill">@if($layoutUser->avatar_url)<img class="avatar avatar-photo" src="{{ $layoutUser->avatar_url }}" alt="{{ $layoutUser->name }} profile picture">@else<span class="avatar">{{ strtoupper(substr($layoutUser->name, 0, 1)) }}</span>@endif<span><strong>{{ $layoutUser->name }}</strong><small>{{ $layoutUser->roleLabel() }}@if($layoutUser->designation) · {{ $layoutUser->designation }}@endif</small></span></div><button type="button" id="install-app" class="nav-link install-link" hidden><span><x-icon name="download" /></span>Install app</button><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form></div>
+            <div class="sidebar-bottom">
+                @if($layoutUser->isAdmin() && $layoutChamber)
+                    <a class="active-chamber" href="{{ route('admin.index') }}" aria-label="Switch chamber. Currently managing {{ $layoutChamber->name }}">
+                        <span class="active-chamber-icon"><x-icon name="purchase" size="16" /></span>
+                        <span class="active-chamber-copy"><small>Managing</small><strong>{{ $layoutChamber->name }}</strong></span>
+                        <span class="active-chamber-action">Switch</span>
+                    </a>
+                @endif
+                <div class="owner-pill">@if($layoutUser->avatar_url)<img class="avatar avatar-photo" src="{{ $layoutUser->avatar_url }}" alt="{{ $layoutUser->name }} profile picture">@else<span class="avatar">{{ strtoupper(substr($layoutUser->name, 0, 1)) }}</span>@endif<span><strong>{{ $layoutUser->name }}</strong><small>{{ $layoutUser->roleLabel() }}@if($layoutUser->designation) · {{ $layoutUser->designation }}@endif</small></span></div>
+                <button type="button" id="install-app" class="nav-link install-link" hidden><span><x-icon name="download" /></span>Install app</button>
+                <form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form>
+            </div>
         </aside>
         <div class="sidebar-backdrop" x-show="menuOpen" x-cloak @click="menuOpen = false" aria-hidden="true"></div>
         <div class="app-main flex-1 min-w-0">

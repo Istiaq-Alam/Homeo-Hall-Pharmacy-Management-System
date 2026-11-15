@@ -1,0 +1,87 @@
+# skill-instructions.md
+
+
+**AI AGENT: read this whole file at the start of every session in this project, then follow it for ALL work. It stays in force until the user says otherwise.**
+
+## 0. Your operating rules (MANDATORY)
+
+1. Read this file first. Then read `./CLAUDE.md` or `./AGENTS.md` and `./DESIGN.md` (if they exist).
+2. Before every task, decide which skills below apply. Open each applicable `SKILL.md` and follow it. Start your reply by naming the skills you are using.
+3. Never skip a skill to save time. Never invent skill rules you have not read.
+4. If instructions conflict, use this priority: the user's explicit request > `DESIGN.md` (colors, fonts, spacing) > skill instructions > your own defaults. Tell the user when you overrule a skill because of their request.
+5. A UI task is NOT finished until it passes the checklist in section 3.
+6. If a skill file is missing or unreadable, say so, then continue with best effort.
+
+## 1. Installed skills (open the SKILL.md before using a skill)
+
+### Impeccable - `.claude/skills/impeccable/SKILL.md`
+- Use for: critiquing, auditing, polishing, simplifying or improving any frontend UI.
+- Commands: `/impeccable audit`, then `/impeccable polish`. If you have no slash commands, open the SKILL.md and apply its audit and polish procedure yourself.
+
+### Taste Skill - `.claude/skills/design-taste-frontend/SKILL.md`
+- Use for: building or redesigning pages so they do not look generic or AI-made.
+- Respect the Taste dials: BOLD (design variance), MOTION (motion intensity), DENSITY (visual density). Ask the user for values if they are not set.
+
+### Vercel Web Design Guidelines - `.claude/skills/web-design-guidelines/SKILL.md`
+- Use for: reviewing UI code for accessibility, UX and interaction quality. Run it before you call any UI task done.
+
+### Superpowers workflow skills
+- Start with `using-superpowers`, then use the skill that matches the situation:
+  - `using-superpowers` - Use when starting any conversation - establishes how to find and use skills, requiring skill... (`.claude/skills/using-superpowers/SKILL.md`)
+  - `brainstorming` - You MUST use this before any creative work - creating features, building components, adding... (`.claude/skills/brainstorming/SKILL.md`)
+  - `writing-plans` - Use when you have a spec or requirements for a multi-step task, before touching code (`.claude/skills/writing-plans/SKILL.md`)
+  - `executing-plans` - Use when executing an implementation plan in the current session as the implementer yourself —... (`.claude/skills/executing-plans/SKILL.md`)
+  - `test-driven-development` - Use when implementing any feature or bugfix, before writing implementation code (`.claude/skills/test-driven-development/SKILL.md`)
+  - `systematic-debugging` - Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes (`.claude/skills/systematic-debugging/SKILL.md`)
+  - `requesting-code-review` - Use when completing tasks, implementing major features, or before merging to verify work meets... (`.claude/skills/requesting-code-review/SKILL.md`)
+  - `receiving-code-review` - Use when receiving code review feedback, before implementing suggestions, especially if... (`.claude/skills/receiving-code-review/SKILL.md`)
+  - `verification-before-completion` - Use when about to claim work is complete, fixed, or passing, before committing or creating PRs... (`.claude/skills/verification-before-completion/SKILL.md`)
+  - `subagent-driven-development` - Use when executing implementation plans with independent tasks in the current session (`.claude/skills/subagent-driven-development/SKILL.md`)
+  - `dispatching-parallel-agents` - Use when facing 2+ independent tasks that can be worked on without shared state or sequential... (`.claude/skills/dispatching-parallel-agents/SKILL.md`)
+  - `using-git-worktrees` - Use when starting feature work that needs isolation from current workspace or before executing... (`.claude/skills/using-git-worktrees/SKILL.md`)
+  - `finishing-a-development-branch` - Use when implementation is complete, all tests pass, and you need to decide how to integrate... (`.claude/skills/finishing-a-development-branch/SKILL.md`)
+- Habit: plan before code (brainstorming, writing-plans), write tests first, debug systematically, verify before saying done.
+
+### Security skills (`offensive-*`, 51 installed) - SAFETY RULES
+- These are offensive-security skills. Use them ONLY for systems the user owns or is explicitly authorized to test (own lab, CTF, scoped engagement).
+- Before using any `offensive-*` skill, ask the user to confirm the target and that they have authorization. If they do not confirm, do not proceed.
+- Never run them against third-party or unknown systems. Never use them for anything unrelated to authorized security work.
+
+## 2. Workflow for every UI task
+
+1. **Ground** - read `DESIGN.md`. Use its exact hex colors, type scale, spacing, radius and shadows. Never invent new tokens.
+2. **Plan** - state which skills you will use and what you will build (keep it short).
+3. **Build** - follow the Taste Skill so the result does not look generic.
+4. **Audit and polish** - run Impeccable on COMPONENTS, TYPOGRAPHY and BACKGROUND layers.
+5. **Review** - run the Vercel Web Design Guidelines on the code.
+6. **Browser QA** - open the live localhost page with Playwright, click the interactive elements, take a real screenshot, and fix every visual bug.
+7. **Report** - tell the user what you built, which skills you used, and what you verified.
+
+## 3. Definition of done (check every line before you finish)
+
+- [ ] Colors, fonts and spacing match `DESIGN.md`
+- [ ] No purple-to-blue gradient headlines; SVG icons, not emoji tiles above headings
+- [ ] Buttons and close icons have at least a 24x24px hit area (44x44px on mobile)
+- [ ] Browser zoom is not disabled (`user-scalable=no` / `maximum-scale=1` are forbidden)
+- [ ] Every async action shows a loading state (`<Spinner />`) while pending
+- [ ] Impeccable audit and polish done; Vercel guidelines review done
+- [ ] Screenshot taken in a real browser; no overflow or overlapping text or buttons
+
+## 4. Hard rules
+
+- Always read `./DESIGN.md` before creating or changing any UI component.
+- Never use emoji icon tiles above feature headings; use clean SVG icons.
+- Never disable browser zoom.
+- Never say "done" before section 3 is satisfied.
+
+## 5. Browser QA tools
+
+- Preferred: Playwright MCP (configured in `.mcp.json`). Use its navigate, click and `take_screenshot` tools.
+- If MCP is not available, run `npx playwright screenshot http://localhost:3000 shot.png` and inspect the image. If the browser is missing, run `npx playwright install chromium`.
+
+## 6. For the human: how to use this file
+
+- Start your agent in this project folder and say: **"Read skill-instructions.md and follow it for everything in this project."**
+- Then give normal tasks, for example: "Build a pricing page", "Audit and polish the dashboard", "Review this component for accessibility".
+- To change the design, run `./setup-design-skills.sh --brand <name>` (the old `DESIGN.md` is kept as `DESIGN.md.bak`), then ask the agent to re-read `DESIGN.md`.
+- If the agent seems to forget the rules, repeat the sentence above.
