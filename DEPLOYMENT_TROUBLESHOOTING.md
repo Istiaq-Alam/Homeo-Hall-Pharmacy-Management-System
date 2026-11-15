@@ -37,9 +37,9 @@ curl -i https://homeo-hall.onrender.com/login
 - **Apache failed to start**: check the logs for `Syntax error` or a bad
   directive. Locally: `docker exec <container> apache2ctl -t`.
 - **Out of memory (512 MB)**: Chromium PDF renders and too many Apache workers
-  can OOM. The image limits `MaxRequestWorkers` to 12. Retry a single report;
-  if it persists, set `PDF_DRIVER=dompdf` (Bangla will not be shaped) or reduce
-  concurrency.
+  can OOM. PDFs use WeasyPrint by default, which is far lighter; the image also
+  limits `MaxRequestWorkers` to 12. Retry a single report; if it persists, set
+  `PDF_DRIVER=dompdf` (Bangla will not be shaped) or reduce concurrency.
 - **Build failed**: the deploy never produced an image. Read the build log, not
   the runtime log.
 
@@ -159,15 +159,19 @@ add a new writable directory, update both. Never `chmod -R 777`.
 
 ## PDF / Bangla text problems
 
-- `PDF_DRIVER=auto` uses Chromium when `/usr/bin/chromium` is present, otherwise
-  Dompdf.
-- A logged warning `Chromium PDF rendering failed; falling back to Dompdf`
-  means the report was delivered with unshaped Bangla. Check memory and retry;
-  on a 512 MB instance large reports may need `PDF_DRIVER=dompdf` or a paid
-  instance.
+- `PDF_DRIVER=auto` renders with WeasyPrint when it is installed, then Chromium
+  (`/usr/bin/chromium`), and finally Dompdf.
+- A logged warning `PDF rendering with weasyprint failed; trying the next engine.`
+  means that engine failed and the report was retried on the next one. Landing
+  on Dompdf produces unshaped Bangla; read the warning's `exception` for why.
+- A PDF that used to time out now renders in seconds because WeasyPrint starts
+  in about a second, while browser start-up alone costs several seconds of CPU
+  (much more on a fractional Render CPU share). Raise `PDF_TIMEOUT` only if a
+  very large report still exceeds it.
 - Missing fonts: Bengali fonts are self-hosted under `hpms/public/fonts`; do not
   remove them from the image.
-- `PDF_CHROME_BINARY` must be an absolute path in the container.
+- `PDF_WEASYPRINT_BINARY` and `PDF_CHROME_BINARY` must be absolute paths in the
+  container.
 
 ## Slow first request after inactivity
 

@@ -8,16 +8,25 @@ return [
     |--------------------------------------------------------------------------
     |
     | Dompdf does not shape complex scripts, so Bengali text (conjuncts,
-    | vowel signs, reordered matras) comes out mangled. A local headless
-    | Chrome/Chromium renders the same HTML with HarfBuzz shaping instead,
-    | offline and without external services.
+    | vowel signs, reordered matras) comes out mangled. WeasyPrint and headless
+    | Chrome/Chromium shape through Pango/HarfBuzz instead, offline and without
+    | external services. WeasyPrint is preferred because it starts in about a
+    | second, while a browser start-up costs several seconds of CPU -- which is
+    | the difference between a PDF and a timeout on a small instance.
     |
-    | Supported values: "auto" (Chromium when available, otherwise Dompdf),
-    | "chromium", "dompdf".
+    | Supported values: "auto" (WeasyPrint, then Chromium, then Dompdf),
+    | "weasyprint", "chromium", "dompdf". A configured engine that is not
+    | installed falls back to the next available one.
     |
     */
 
     'driver' => env('PDF_DRIVER', 'auto'),
+
+    /*
+    | Explicit path to the WeasyPrint binary. Leave empty to search PATH.
+    */
+
+    'weasyprint' => env('PDF_WEASYPRINT_BINARY'),
 
     /*
     | Explicit path to a Chrome/Chromium/Edge binary. Leave empty to let the
@@ -27,15 +36,16 @@ return [
     'binary' => env('PDF_CHROME_BINARY'),
 
     /*
-    | Seconds to wait for the browser before giving up on a document.
+    | Seconds to wait for the rendering engine before giving up on a document.
+    | Generous, because a fractional CPU share makes the first render slow.
     */
 
-    'timeout' => (int) env('PDF_TIMEOUT', 30),
+    'timeout' => (int) env('PDF_TIMEOUT', 60),
 
     /*
-    | When Chromium is configured but fails, fall back to Dompdf so reports
-    | are still delivered (with unshaped Bengali text) and the failure is
-    | written to the application log.
+    | When an engine fails, try the next one so reports are still delivered
+    | (Dompdf output has unshaped Bengali text) and the failure is written to
+    | the application log.
     */
 
     'fallback' => (bool) env('PDF_FALLBACK', true),

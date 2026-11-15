@@ -250,7 +250,7 @@ Required values:
 | `AWS_BUCKET` | `homeo-hall-files` |
 | `AWS_ENDPOINT` | `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` |
 | `AWS_USE_PATH_STYLE_ENDPOINT` | `true` |
-| `PDF_DRIVER` / `PDF_CHROME_BINARY` / `PDF_FALLBACK` | `auto` / `/usr/bin/chromium` / `true` |
+| `PDF_DRIVER` / `PDF_WEASYPRINT_BINARY` / `PDF_CHROME_BINARY` / `PDF_TIMEOUT` / `PDF_FALLBACK` | `auto` / `/usr/bin/weasyprint` / `/usr/bin/chromium` / `60` / `true` |
 | `MAIL_MAILER` | `log` |
 
 `APP_URL` is unknown until the service exists. Create it with a temporary value,
@@ -267,7 +267,8 @@ Click **Deploy** (or push to `main` if auto-deploy is on). The Dockerfile:
 1. installs npm dependencies from `package-lock.json`, builds Vite/Tailwind;
 2. installs Composer production dependencies from `composer.lock` (no dev
    packages, no scripts during build);
-3. installs PHP extensions, Apache, CA certificates, Chromium and system fonts;
+3. installs PHP extensions, Apache, CA certificates, WeasyPrint, Chromium and
+   system fonts;
 4. copies only application code, `vendor/` and `public/build`;
 5. runs as Apache with only `storage/` and `bootstrap/cache/` writable.
 
@@ -315,7 +316,8 @@ run from your machine against TiDB.
 - Medicine list count matches the pre-migration baseline; stock quantities and average costs are unchanged.
 - Purchase and sale lists show the same totals as before.
 - Daily/monthly/yearly/custom reports show the same totals for a known date range.
-- CSV, XLSX and PDF exports download; the PDF shows Bangla text correctly (Chromium) or falls back with a logged warning.
+- CSV, XLSX and PDF exports download; the PDF shows Bangla text correctly
+  (WeasyPrint, then Chromium) or falls back with a logged warning.
 - Bangla/English switching and Asia/Dhaka dates are correct.
 - Cancel one test transaction created after go-live and confirm stock returns.
 

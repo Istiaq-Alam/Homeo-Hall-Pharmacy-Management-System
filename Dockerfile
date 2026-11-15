@@ -30,7 +30,7 @@ COPY hpms/ ./
 RUN composer dump-autoload --no-dev --optimize --no-scripts
 
 # ---------------------------------------------------------------------------
-# 3. Runtime: Apache + mod_php, production extensions, Chromium for PDFs
+# 3. Runtime: Apache + mod_php, production extensions, WeasyPrint/Chromium for PDFs
 # ---------------------------------------------------------------------------
 FROM php:8.4-apache AS runtime
 
@@ -49,6 +49,7 @@ RUN apt-get update \
         libpng-dev \
         libwebp-dev \
         libzip-dev \
+        weasyprint \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j"$(nproc)" bcmath gd mbstring opcache pdo_mysql zip \
     && a2enmod rewrite headers \

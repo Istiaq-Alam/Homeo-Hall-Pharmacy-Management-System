@@ -31,7 +31,7 @@ unverified until the checks in this document are completed.
 | Sessions / cache | Database driver for both (`sessions`, `cache`, `cache_locks` tables) |
 | Queue | Database driver by default, but **no job is dispatched anywhere**; production is set to `sync` |
 | Mail / scheduler | No application mail, notifications, scheduled tasks or external API calls |
-| Exports | CSV and custom XLSX (`App\Support\SimpleXlsxWriter`), ZIP business-data export (`ext-zip`), PDF via Dompdf with optional headless Chromium for shaped Bangla text |
+| Exports | CSV and custom XLSX (`App\Support\SimpleXlsxWriter`), ZIP business-data export (`ext-zip`), PDF via WeasyPrint with headless Chromium and Dompdf as fallbacks (shaped Bangla text) |
 | Uploads | Chamber logo and user avatar only, stored on the `public` disk, references kept in DB (`settings.chamber_logo`, `users.avatar_path`, `settings.chamber_brand_assets`) |
 
 PHP requirements: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `fileinfo`, `zip` (backup ZIP), and `gd` for logo-derived brand icons. `intl` is not used. OPcache is included in the image.
@@ -107,7 +107,7 @@ limit is the effective one.
 | 2 | Brand icons failed on non-local disks (`path()` unsupported) | **Fixed**: render to temp, upload; covered by tests with a remote fake disk. |
 | 3 | R2 bucket is private, so `Storage::url()` would break previews | **Fixed**: all previews use `/media/...`; bucket must not be made public. |
 | 4 | TiDB stock locking differs (no gap locks; optimistic mode ignores `FOR UPDATE`) | **Verify on TiDB**: check `@@tidb_txn_mode = pessimistic`; run concurrent sale/purchase test before real use. |
-| 5 | Chromium PDF rendering in 512 MB | Container includes Chromium; `PDF_FALLBACK=true` falls back to Dompdf with unshaped Bangla. Large PDFs may be slow/OOM on Free. Test one report; optionally set `PDF_DRIVER=dompdf`. |
+| 5 | PDF rendering in 512 MB | Container includes WeasyPrint and Chromium; WeasyPrint renders shaped Bangla in about two seconds, and `PDF_FALLBACK=true` falls back to Dompdf (unshaped Bangla) with a logged warning. Test one report after deploying. |
 | 6 | Database needed during provider boot | **Fixed**: settings boot lookups now fail soft, so `/up` and `/health` respond instead of 500 when TiDB is down. |
 | 7 | Render Free sleeps after 15 minutes idle, ~1 minute cold start; 750 hours/month; 0.1 CPU / 512 MB; no shell or one-off jobs | Documented. Health path is `/up`; migrations and imports are done from a local machine. |
 | 8 | Free TiDB quota exhaustion refuses new connections | Monitor RU usage; keep a spending limit off for a strictly free setup and expect downtime until monthly reset. |
@@ -146,7 +146,7 @@ Passed locally:
 - Docker image build (with host networking in this environment; the default build initially hit a Docker DNS failure unrelated to the repository).
 - Container boot against local MariaDB: `/up` 200, `/health` 200 `{"status":"ok","database":"ok"}`, `/login` 200, `/manifest.webmanifest` 200, `/sw.js` 200, `/media/branding/...` 200 `image/png`, guest avatar request 404.
 - Container boot with an unreachable database: `/up` 200 and `/health` 503 JSON (no session/stack trace).
-- Apache configuration syntax, required PHP extensions, Chromium PDF generation inside the image.
+- Apache configuration syntax, required PHP extensions, WeasyPrint/Chromium PDF generation inside the image.
 
 NOT RUN (no resources/credentials):
 
