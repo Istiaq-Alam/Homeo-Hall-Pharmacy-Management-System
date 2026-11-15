@@ -10,9 +10,12 @@ use Symfony\Component\Process\Process;
 use Throwable;
 
 /**
- * Derives the install identity (favicons, PWA icons, Apple touch icon and iOS
- * startup screens) from a chamber's uploaded logo, so each chamber can
- * white-label the app without shipping artwork per tenant.
+ * Derives the install identity (favicons, PWA icons and the Apple touch icon)
+ * from a chamber's uploaded logo, so each chamber can white-label the app
+ * without shipping artwork per tenant.
+ *
+ * Launch screens are not generated: the head partial links the bundled artwork
+ * in public/icons/splash, which already carries the Homeo-Hall name.
  *
  * GD is used when the extension is loaded; otherwise the ImageMagick binary is
  * invoked. Without either backend the caller keeps the bundled Homeo-Hall
@@ -21,7 +24,8 @@ use Throwable;
 class BrandAssets
 {
     /**
-     * iOS startup screens as CSS width, CSS height and device pixel ratio.
+     * Bundled launch screens in public/icons/splash as CSS width, CSS height
+     * and device pixel ratio.
      *
      * @var list<array{0: int, 1: int, 2: int}>
      */
@@ -61,12 +65,6 @@ class BrandAssets
         'maskable512' => ['file' => 'icon-maskable-512.png', 'size' => 512, 'ratio' => 0.68],
     ];
 
-    /** Chamber name colour on the generated splash screens. */
-    private const LABEL_COLOR = '#111827';
-
-    /** Average glyph advance (in em) used to size the chamber name. */
-    private const LABEL_ADVANCE = 0.72;
-
     private static ?string $binary = null;
 
     private static bool $resolvedBinary = false;
@@ -77,14 +75,13 @@ class BrandAssets
     }
 
     /**
-     * Render every brand asset beside the stored logo.
+     * Render the square brand assets beside the stored logo.
      *
      * @param  string  $source  Absolute path to the uploaded logo.
      * @param  string  $directory  Storage-relative directory that holds the logo.
-     * @param  string|null  $label  Chamber name printed under the logo on the splash screens.
-     * @return array{mark: string, favicon32: string, favicon48: string, appleTouch: string, icon192: string, icon512: string, maskable192: string, maskable512: string, splash: array<string, string>}|null
+     * @return array{mark: string, favicon32: string, favicon48: string, appleTouch: string, icon192: string, icon512: string, maskable192: string, maskable512: string}|null
      */
-    public static function generate(string $source, string $directory, ?string $label = null): ?array
+    public static function generate(string $source, string $directory): ?array
     {
         if (! is_file($source)) {
             return null;
@@ -102,7 +99,7 @@ class BrandAssets
         $workspace = storage_path('app/brand-assets/'.Str::random(16));
         $uploaded = [];
 
-        File::ensureDirectoryExists($workspace.'/splash');
+        File::ensureDirectoryExists($workspace);
 
         try {
             $assets = [];
@@ -116,22 +113,6 @@ class BrandAssets
                 self::upload($disk, $local, $relative);
                 $uploaded[] = $relative;
                 $assets[$key] = $relative;
-            }
-
-            $assets['splash'] = [];
-
-            foreach (self::SPLASH as [$width, $height, $dpr]) {
-                $pixelWidth = $width * $dpr;
-                $pixelHeight = $height * $dpr;
-                $relative = $directory.'/splash/'.$pixelWidth.'x'.$pixelHeight.'.png';
-                $local = $workspace.'/splash/'.$pixelWidth.'x'.$pixelHeight.'.png';
-
-                $layout = self::splashLayout($pixelWidth, $pixelHeight, $source, $label);
-
-                self::render($source, $local, $pixelWidth, $pixelHeight, $layout['artWidth'], $layout['artHeight'], $layout);
-                self::upload($disk, $local, $relative);
-                $uploaded[] = $relative;
-                $assets['splash'][$pixelWidth.'x'.$pixelHeight] = $relative;
             }
 
             return $assets;
@@ -150,185 +131,6 @@ class BrandAssets
         } finally {
             File::deleteDirectory($workspace);
         }
-    }
-
-    /**
-     * Splash geometry: artwork and chamber name are centred as one lockup, the
-     * way the bundled Homeo-Hall startup screens are composed.
-     *
-     * @return array{artWidth: int, artHeight: int, artTop: int, label: string|null, labelSize: int, labelTop: int}
-     */
-    private static function splashLayout(int $canvasWidth, int $canvasHeight, ?string $source, ?string $label): array
-    {
-        $portrait = $canvasHeight >= $canvasWidth;
-
-        [$artWidth, $artHeight] = self::fitArtwork(
-            $source,
-            (int) round($canvasWidth * ($portrait ? 0.52 : 0.34)),
-            (int) round($canvasHeight * ($portrait ? 0.24 : 0.38)),
-        );
-
-        $text = trim((string) preg_replace('/\s+/u', ' ', (string) $label));
-        $maxTextWidth = (int) round($canvasWidth * 0.84);
-        $baseSize = max(12, min(96, (int) round($canvasWidth * ($portrait ? 0.05 : 0.032))));
-        // Long chamber names step down instead of spanning the whole screen.
-        $fittedSize = (int) floor($maxTextWidth / (self::LABEL_ADVANCE * max(1, mb_strlen($text))));
-        $labelSize = max((int) round($baseSize * 0.45), min($baseSize, $fittedSize));
-        $labelText = self::fitLabel($text, $labelSize, $maxTextWidth);
-        $gap = $labelText === null ? 0 : (int) round($canvasHeight * 0.03);
-        $textHeight = $labelText === null ? 0 : (int) round($labelSize * 1.35);
-
-        $artTop = max(0, (int) round(($canvasHeight - ($artHeight + $gap + $textHeight)) * 0.46));
-
-        return [
-            'artWidth' => $artWidth,
-            'artHeight' => $artHeight,
-            'artTop' => $artTop,
-            'label' => $labelText,
-            'labelSize' => $labelSize,
-            'labelTop' => $artTop + $artHeight + $gap,
-        ];
-    }
-
-    /**
-     * Largest artwork rectangle that fits the splash box without distortion.
-     *
-     * @return array{0: int, 1: int}
-     */
-    private static function fitArtwork(?string $source, int $maxWidth, int $maxHeight): array
-    {
-        $size = $source === null ? false : @getimagesize($source);
-
-        if ($size === false || $size[0] < 1 || $size[1] < 1) {
-            return [max(1, $maxWidth), max(1, $maxHeight)];
-        }
-
-        $scale = min($maxWidth / $size[0], $maxHeight / $size[1]);
-
-        return [max(1, (int) round($size[0] * $scale)), max(1, (int) round($size[1] * $scale))];
-    }
-
-    /**
-     * Latin font for the chamber name (the image ships fonts-dejavu-core).
-     */
-    private static function latinFont(): ?string
-    {
-        foreach ([
-            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-            public_path('fonts/DejaVuSans-Bold.ttf'),
-            '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf',
-        ] as $candidate) {
-            if (is_file($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Bengali font for the chamber name; the bundled file wins so the image is
-     * self-contained even when the host ships no Bengali font.
-     */
-    private static function bengaliFont(): ?string
-    {
-        foreach ([
-            public_path('fonts/NotoSansBengali-Bold.ttf'),
-            '/usr/share/fonts/truetype/noto/NotoSansBengali-Bold.ttf',
-        ] as $candidate) {
-            if (is_file($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Split the chamber name into script runs, because no single bundled font
-     * covers both Latin and Bengali glyphs. A mixed name therefore alternates
-     * between the DejaVu and Noto runs instead of drawing empty boxes.
-     *
-     * @return list<array{text: string, font: string}>
-     */
-    private static function labelRuns(string $label): array
-    {
-        $latin = self::latinFont();
-        $bengali = self::bengaliFont();
-
-        $runs = [];
-
-        foreach (mb_str_split($label) as $character) {
-            $isBengali = preg_match('/\p{Bengali}/u', $character) === 1;
-            $font = $isBengali ? ($bengali ?? $latin) : ($latin ?? $bengali);
-
-            if ($font === null) {
-                return [];
-            }
-
-            $last = count($runs) - 1;
-
-            if ($last >= 0 && $runs[$last]['font'] === $font) {
-                $runs[$last]['text'] .= $character;
-            } else {
-                $runs[] = ['text' => $character, 'font' => $font];
-            }
-        }
-
-        return $runs;
-    }
-
-    /**
-     * Width of one text run, measured by ImageMagick without writing a file.
-     */
-    private static function measureWithIm(string $binary, string $font, int $fontSize, string $text): int
-    {
-        try {
-            $process = new Process([
-                $binary, '-font', $font, '-pointsize', (string) $fontSize,
-                '-background', 'none', 'label:'.$text, '-format', '%w', 'info:',
-            ]);
-            $process->setTimeout(10);
-            $process->run();
-
-            $width = (int) trim($process->getOutput());
-
-            if ($process->isSuccessful() && $width > 0) {
-                return $width;
-            }
-        } catch (Throwable) {
-            // Fall back to the estimate below.
-        }
-
-        return (int) round(mb_strlen($text) * $fontSize * self::LABEL_ADVANCE);
-    }
-
-    /**
-     * Trim the chamber name to what fits the canvas width in one line.
-     *
-     * Both render backends share this estimate so a name is cut the same way
-     * whether GD or ImageMagick draws it; the crop is deliberately generous.
-     */
-    private static function fitLabel(string $label, int $fontSize, int $maxWidth): ?string
-    {
-        $label = trim($label);
-
-        if ($label === '') {
-            return null;
-        }
-
-        $chars = mb_str_split($label);
-        $approximateWidth = fn (int $count): int => (int) round($count * $fontSize * self::LABEL_ADVANCE);
-
-        if ($approximateWidth(count($chars)) <= $maxWidth) {
-            return $label;
-        }
-
-        while (count($chars) > 1 && $approximateWidth(count($chars) + 1) > $maxWidth) {
-            array_pop($chars);
-        }
-
-        return rtrim(implode('', $chars)).'…';
     }
 
     private static function upload(FilesystemAdapter $disk, string $local, string $relative): void
@@ -366,16 +168,6 @@ class BrandAssets
             }
         }
 
-        if (isset($assets['splash']) && is_array($assets['splash'])) {
-            $urls['splash'] = [];
-
-            foreach ($assets['splash'] as $size => $path) {
-                if (is_string($path)) {
-                    $urls['splash'][$size] = MediaStorage::url($path);
-                }
-            }
-        }
-
         return $urls;
     }
 
@@ -405,52 +197,19 @@ class BrandAssets
      * @param  int  $boxWidth  Maximum artwork width in pixels.
      * @param  int  $boxHeight  Maximum artwork height in pixels.
      */
-    private static function render(string $source, string $target, int $canvasWidth, int $canvasHeight, int $boxWidth, int $boxHeight, ?array $layout = null): void
+    private static function render(string $source, string $target, int $canvasWidth, int $canvasHeight, int $boxWidth, int $boxHeight): void
     {
         $binary = self::binary();
 
         if ($binary !== null) {
-            if ($layout === null) {
-                // Square icons: scale into the safe box and centre on a white canvas.
-                $command = [
-                    $binary, $source,
-                    '-background', 'white', '-gravity', 'center',
-                    '-resize', $boxWidth.'x'.$boxHeight,
-                    '-extent', $canvasWidth.'x'.$canvasHeight,
-                ];
-            } else {
-                $artLeft = (int) max(0, round(($canvasWidth - $layout['artWidth']) / 2));
-
-                $command = [
-                    $binary,
-                    '-background', 'white',
-                    '-size', $canvasWidth.'x'.$canvasHeight, 'xc:white',
-                    '(', $source, '-resize', $layout['artWidth'].'x'.$layout['artHeight'].'!', ')',
-                    '-gravity', 'northwest', '-geometry', '+'.$artLeft.'+'.$layout['artTop'],
-                    '-composite',
-                ];
-
-                $runs = $layout['label'] === null ? [] : self::labelRuns($layout['label']);
-
-                if ($runs !== []) {
-                    $widths = array_map(
-                        fn (array $run): int => self::measureWithIm($binary, $run['font'], $layout['labelSize'], $run['text']),
-                        $runs,
-                    );
-                    $left = (int) max(0, round(($canvasWidth - array_sum($widths)) / 2));
-
-                    foreach ($runs as $index => $run) {
-                        $command = [...$command, '-font', $run['font'], '-fill', self::LABEL_COLOR,
-                            '-pointsize', (string) $layout['labelSize'],
-                            '-gravity', 'northwest',
-                            '-annotate', '+'.$left.'+'.$layout['labelTop'], $run['text']];
-                        $left += $widths[$index];
-                    }
-                }
-            }
-
-            $command[] = '-strip';
-            $command[] = $target;
+            // Scale into the safe box and centre on a white canvas.
+            $command = [
+                $binary, $source,
+                '-background', 'white', '-gravity', 'center',
+                '-resize', $boxWidth.'x'.$boxHeight,
+                '-extent', $canvasWidth.'x'.$canvasHeight,
+                '-strip', $target,
+            ];
 
             $process = new Process($command);
             $process->setTimeout(30);
@@ -463,10 +222,10 @@ class BrandAssets
             return;
         }
 
-        self::renderWithGd($source, $target, $canvasWidth, $canvasHeight, $boxWidth, $boxHeight, $layout);
+        self::renderWithGd($source, $target, $canvasWidth, $canvasHeight, $boxWidth, $boxHeight);
     }
 
-    private static function renderWithGd(string $source, string $target, int $canvasWidth, int $canvasHeight, int $boxWidth, int $boxHeight, ?array $layout = null): void
+    private static function renderWithGd(string $source, string $target, int $canvasWidth, int $canvasHeight, int $boxWidth, int $boxHeight): void
     {
         $size = @getimagesize($source);
         if ($size === false || $size[0] < 1 || $size[1] < 1) {
@@ -490,24 +249,15 @@ class BrandAssets
         imagealphablending($canvas, true);
         imagefilledrectangle($canvas, 0, 0, $canvasWidth, $canvasHeight, imagecolorallocate($canvas, 255, 255, 255));
 
-        if ($layout === null) {
-            $scale = min($boxWidth / $width, $boxHeight / $height);
-            $drawWidth = max(1, (int) round($width * $scale));
-            $drawHeight = max(1, (int) round($height * $scale));
-            $drawX = (int) round(($canvasWidth - $drawWidth) / 2);
-            $drawY = (int) round(($canvasHeight - $drawHeight) / 2);
-        } else {
-            $drawWidth = $layout['artWidth'];
-            $drawHeight = $layout['artHeight'];
-            $drawX = (int) max(0, round(($canvasWidth - $drawWidth) / 2));
-            $drawY = $layout['artTop'];
-        }
+        $scale = min($boxWidth / $width, $boxHeight / $height);
+        $drawWidth = max(1, (int) round($width * $scale));
+        $drawHeight = max(1, (int) round($height * $scale));
 
         imagecopyresampled(
             $canvas,
             $artwork,
-            $drawX,
-            $drawY,
+            (int) round(($canvasWidth - $drawWidth) / 2),
+            (int) round(($canvasHeight - $drawHeight) / 2),
             0,
             0,
             $drawWidth,
@@ -516,72 +266,9 @@ class BrandAssets
             $height,
         );
 
-        if (($layout['label'] ?? null) !== null) {
-            self::drawLabelWithGd($canvas, self::labelRuns($layout['label']), $layout['labelSize'], $layout['labelTop'], $canvasWidth);
-        }
-
         imagepng($canvas, $target, 6);
         imagedestroy($canvas);
         imagedestroy($artwork);
-    }
-
-    /**
-     * Draw the chamber name with FreeType so it stays crisp at every splash size.
-     * Without FreeType the splash still renders, just without the label.
-     */
-    /**
-     * @param  list<array{text: string, font: string}>  $runs
-     */
-    private static function drawLabelWithGd(\GdImage $canvas, array $runs, int $fontSize, int $top, int $canvasWidth): void
-    {
-        if ($runs === [] || ! function_exists('imagettfbbox') || ! function_exists('imagettftext')) {
-            return;
-        }
-
-        $maxWidth = (int) round($canvasWidth * 0.9);
-        $size = $fontSize;
-
-        // Shrink until every run fits on one line, then keep the tallest ascent
-        // shared so the scripts sit on the same baseline.
-        for (; $size > 12; $size -= 2) {
-            $total = 0;
-
-            foreach ($runs as $run) {
-                $box = imagettfbbox($size, 0, $run['font'], $run['text']);
-
-                if ($box === false) {
-                    return;
-                }
-
-                $total += $box[2] - $box[0];
-            }
-
-            if ($total <= $maxWidth) {
-                break;
-            }
-        }
-
-        $widths = [];
-        $ascent = 0;
-
-        foreach ($runs as $index => $run) {
-            $box = imagettfbbox($size, 0, $run['font'], $run['text']);
-
-            if ($box === false) {
-                return;
-            }
-
-            $widths[$index] = $box[2] - $box[0];
-            $ascent = max($ascent, -$box[7]);
-        }
-
-        $colour = imagecolorallocate($canvas, 0x11, 0x18, 0x27);
-        $left = (int) max(0, round(($canvasWidth - array_sum($widths)) / 2));
-
-        foreach ($runs as $index => $run) {
-            imagettftext($canvas, $size, 0, $left, (int) round($top + $ascent), $colour, $run['font'], $run['text']);
-            $left += $widths[$index];
-        }
     }
 
     private static function binary(): ?string

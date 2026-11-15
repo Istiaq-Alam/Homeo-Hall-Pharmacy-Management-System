@@ -5,7 +5,7 @@ Homeo-Hall stores only two kinds of permanent uploads:
 | Type | Local location | R2 object key | Database reference |
 |---|---|---|---|
 | Chamber logo | `hpms/storage/app/public/branding/...` | `branding/...` | `settings.chamber_logo` |
-| Derived icons/splash | `hpms/storage/app/public/branding/...` | `branding/...` | `settings.chamber_brand_assets` |
+| Derived icons | `hpms/storage/app/public/branding/...` | `branding/...` | `settings.chamber_brand_assets` |
 | User avatar | `hpms/storage/app/public/avatars/...` | `avatars/...` | `users.avatar_path` |
 
 There are no other uploads. Temporary files (`storage/app/pdf`,

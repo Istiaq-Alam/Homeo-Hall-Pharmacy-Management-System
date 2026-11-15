@@ -2,12 +2,11 @@
     $pwaTitle = $appSettings['chamber_name'] ?? config('app.name', 'Homeo-Hall');
     $brand = $appSettings['brand_assets'] ?? [];
 
-    // A global administrator keeps the Homeo-Hall launch screen; chamber staff see
-    // the chamber logo with its name once the owner uploads one.
-    $viewer = auth()->user();
-    $splashBrand = $viewer instanceof \App\Models\User && $viewer->isAdmin() ? [] : ($brand['splash'] ?? []);
-
-    // Exact device-pixel sizes so iOS picks a native splash instead of a white screen.
+    // Every user gets the bundled launch screens from public/icons/splash: the
+    // artwork already carries the Homeo-Hall name, so nothing is drawn over it.
+    // Sizes are listed at exact device pixels so iOS picks a native splash
+    // instead of showing a blank white screen; ?v=2 retires the previous
+    // artwork iOS may still have cached against the bare file name.
     $splashScreens = collect(\App\Support\BrandAssets::SPLASH)->map(fn (array $screen) => [
         'w' => $screen[0],
         'h' => $screen[1],
@@ -29,5 +28,5 @@
 <link rel="icon" type="image/png" sizes="48x48" href="{{ $brand['favicon48'] ?? asset('icons/favicon-48.png') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ $brand['appleTouch'] ?? asset('icons/apple-touch-icon.png') }}">
 @foreach ($splashScreens as $splash)
-<link rel="apple-touch-startup-image" media="screen and (device-width: {{ $splash['w'] }}px) and (device-height: {{ $splash['h'] }}px) and (-webkit-device-pixel-ratio: {{ $splash['dpr'] }}) and (orientation: {{ $splash['orientation'] }})" href="{{ $splashBrand[$splash['size']] ?? asset('icons/splash/'.$splash['size'].'.png') }}">
+<link rel="apple-touch-startup-image" media="screen and (device-width: {{ $splash['w'] }}px) and (device-height: {{ $splash['h'] }}px) and (-webkit-device-pixel-ratio: {{ $splash['dpr'] }}) and (orientation: {{ $splash['orientation'] }})" href="{{ asset('icons/splash/'.$splash['size'].'.png').'?v=2' }}">
 @endforeach

@@ -120,20 +120,17 @@ class PageSmokeTest extends TestCase
 
         if (BrandAssets::supported()) {
             $this->assertIsArray($assets);
-            $this->assertCount(16, $assets['splash']);
+            $this->assertArrayNotHasKey('splash', $assets);
 
             foreach (['mark', 'favicon32', 'favicon48', 'appleTouch', 'icon192', 'icon512', 'maskable192', 'maskable512'] as $key) {
                 Storage::disk('public')->assertExists($assets[$key]);
             }
 
-            foreach ($assets['splash'] as $splash) {
-                Storage::disk('public')->assertExists($splash);
-            }
-
+            // Launch screens stay the bundled artwork, not the chamber logo.
             $this->actingAs($owner)->get('/dashboard')
                 ->assertOk()
                 ->assertSee($assets['favicon32'], false)
-                ->assertSee($assets['splash']['1290x2796'], false);
+                ->assertSee('icons/splash/1290x2796.png', false);
         }
 
         $this->actingAs($owner)->put('/settings', [...$settings, 'remove_logo' => 1])->assertRedirect();

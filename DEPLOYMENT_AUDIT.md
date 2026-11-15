@@ -81,7 +81,7 @@ Permanent files:
 | What | DB reference | Key format |
 |---|---|---|
 | Chamber logo | `settings.chamber_logo` | `branding/<random>/logo.<ext>` |
-| Derived PWA icons/splash | `settings.chamber_brand_assets` (JSON) | `branding/<random>/...` |
+| Derived PWA icons | `settings.chamber_brand_assets` (JSON) | `branding/<random>/...` |
 | User avatar | `users.avatar_path` | `avatars/<random>.<ext>` |
 
 Before this work, every upload was written to `Storage::disk('public')` and

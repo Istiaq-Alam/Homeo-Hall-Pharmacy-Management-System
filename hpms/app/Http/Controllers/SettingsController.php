@@ -49,7 +49,6 @@ class SettingsController extends Controller
         ]);
 
         $oldLogo = Setting::query()->where('key', 'chamber_logo')->value('value');
-        $oldChamberName = Setting::query()->where('key', 'chamber_name')->value('value');
         if ($request->hasFile('chamber_logo')) {
             $file = $request->file('chamber_logo');
             $directory = 'branding/'.Str::lower(Str::random(12));
@@ -59,7 +58,7 @@ class SettingsController extends Controller
                 return back()->withErrors(['chamber_logo' => __('settings.flash.logo_error')])->withInput();
             }
             Setting::query()->updateOrCreate(['key' => 'chamber_logo'], ['value' => $newLogo]);
-            $this->storeBrandAssets($newLogo, $directory, $data['chamber_name']);
+            $this->storeBrandAssets($newLogo, $directory);
             BrandAssets::delete($oldLogo);
         } elseif ($request->boolean('remove_logo')) {
             Setting::query()->where('key', 'chamber_logo')->delete();
@@ -87,13 +86,6 @@ class SettingsController extends Controller
             Setting::query()->updateOrCreate(['key' => $key], ['value' => (string) $value]);
         }
 
-        if ($oldLogo !== null
-            && $data['chamber_name'] !== $oldChamberName
-            && ! $request->hasFile('chamber_logo')
-            && ! $request->boolean('remove_logo')) {
-            // The splash screens print the chamber name, so a rename redraws them.
-            $this->storeBrandAssets($oldLogo, dirname($oldLogo), $data['chamber_name']);
-        }
         if ($user->isOwner()) {
             $user->name = $data['owner_name'];
             $user->save();
@@ -120,7 +112,7 @@ class SettingsController extends Controller
         return back()->with('success', __('settings.flash.password_changed'));
     }
 
-    private function storeBrandAssets(string $logoPath, string $directory, ?string $chamberName = null): void
+    private function storeBrandAssets(string $logoPath, string $directory): void
     {
         $source = MediaStorage::localCopy($logoPath);
 
@@ -131,7 +123,7 @@ class SettingsController extends Controller
         }
 
         try {
-            $assets = BrandAssets::generate($source, $directory, $chamberName);
+            $assets = BrandAssets::generate($source, $directory);
         } finally {
             MediaStorage::forgetLocalCopy($source);
         }
