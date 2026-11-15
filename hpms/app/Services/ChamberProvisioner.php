@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\UserRole;
 use App\Models\Chamber;
 use App\Models\ExpenseCategory;
 use App\Models\MedicineCategory;
@@ -9,7 +10,6 @@ use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ChamberProvisioner
 {
@@ -20,23 +20,27 @@ class ChamberProvisioner
     public const EXPENSE_CATEGORIES = ['Chamber Rent', 'Electricity', 'Water', 'Internet', 'Transportation', 'Stationery', 'Cleaning', 'Maintenance', 'Other'];
 
     /** @param array{name: string, email: string, designation: string, password: string} $data */
-    public function createWithAdmin(array $data): User
+    public function createOwner(array $data, string $chamberName): User
     {
-        return DB::transaction(function () use ($data): User {
-            $chamberName = Str::limit(trim($data['name']), 140, '').' Chamber';
+        return DB::transaction(function () use ($data, $chamberName): User {
             $chamber = Chamber::query()->create(['name' => $chamberName]);
 
             $this->ensureDefaults($chamber, $data['name']);
 
-            return User::query()->create([
-                'chamber_id' => $chamber->id,
-                'name' => $data['name'],
-                'designation' => $data['designation'],
-                'email' => $data['email'],
-                'email_verified_at' => now(),
-                'password' => Hash::make($data['password']),
-            ]);
+            return $this->createUser($data, UserRole::Owner, $chamber->id);
         });
+    }
+
+    /** @param array{name: string, email: string, designation: string, password: string} $data */
+    public function createStaff(Chamber $chamber, array $data): User
+    {
+        return $this->createUser($data, UserRole::Staff, $chamber->id);
+    }
+
+    /** @param array{name: string, email: string, designation: string, password: string} $data */
+    public function createAdmin(array $data): User
+    {
+        return $this->createUser($data, UserRole::Admin, null);
     }
 
     public function ensureDefaults(Chamber $chamber, ?string $ownerName = null): void
@@ -77,5 +81,19 @@ class ChamberProvisioner
                     ['is_active' => true],
                 );
         }
+    }
+
+    /** @param array{name: string, email: string, designation: string, password: string} $data */
+    private function createUser(array $data, UserRole $role, ?int $chamberId): User
+    {
+        return User::query()->create([
+            'chamber_id' => $chamberId,
+            'role' => $role,
+            'name' => $data['name'],
+            'designation' => $data['designation'],
+            'email' => $data['email'],
+            'email_verified_at' => now(),
+            'password' => Hash::make($data['password']),
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Services\TransactionService;
+use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -74,7 +75,7 @@ class ExpenseController extends Controller
 
     public function saveCategory(Request $request, ?ExpenseCategory $category = null): RedirectResponse
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('expense_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
         ($category ?? new ExpenseCategory)->fill($data)->save();
 
@@ -84,7 +85,7 @@ class ExpenseController extends Controller
     /** @return array<string, mixed> */
     private function validated(Request $request): array
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
 
         return $request->validate([
             'expense_category_id' => ['required', Rule::exists('expense_categories', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))],

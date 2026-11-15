@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Services\TransactionService;
+use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -72,7 +73,7 @@ class MedicineController extends Controller
 
     public function saveCategory(Request $request, ?MedicineCategory $category = null): RedirectResponse
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate(['name' => ['required', 'string', 'max:100', Rule::unique('medicine_categories', 'name')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))->ignore($category?->id)], 'is_active' => ['sometimes', 'boolean']]);
         ($category ?? new MedicineCategory)->fill($data)->save();
 
@@ -86,7 +87,7 @@ class MedicineController extends Controller
 
     public function adjust(Request $request, TransactionService $transactions): RedirectResponse
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate(['medicine_id' => ['required', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'adjustment_type' => ['required', Rule::in(['increase', 'decrease'])], 'quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'reason' => ['required', 'string', 'max:255'], 'adjustment_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000']]);
         $transactions->adjustStock($data, (int) $request->user()->id);
 
@@ -96,7 +97,7 @@ class MedicineController extends Controller
     /** @return array<string, mixed> */
     private function validated(Request $request, ?Medicine $medicine = null): array
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate([
             'category_id' => ['required', Rule::exists('medicine_categories', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))],
             'name' => ['required', 'string', 'max:150'],

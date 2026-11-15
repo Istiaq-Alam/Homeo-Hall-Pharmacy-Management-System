@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ChamberContext;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use ZipArchive;
@@ -17,7 +18,7 @@ class BackupController extends Controller
         if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             abort(500, 'Unable to create the backup archive.');
         }
-        $chamberId = auth()->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         foreach (self::TABLES as $table) {
             $csv = fopen('php://temp', 'r+');
             $columns = DB::getSchemaBuilder()->getColumnListing($table);

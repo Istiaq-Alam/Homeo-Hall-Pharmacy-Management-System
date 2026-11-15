@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -13,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['chamber_id', 'name', 'designation', 'email', 'password', 'avatar_path'])]
+#[Fillable(['chamber_id', 'role', 'name', 'designation', 'email', 'password', 'avatar_path'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,6 +29,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'role' => UserRole::class,
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
@@ -43,5 +45,25 @@ class User extends Authenticatable
     public function chamber(): BelongsTo
     {
         return $this->belongsTo(Chamber::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === UserRole::Owner;
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === UserRole::Staff;
+    }
+
+    public function roleLabel(): string
+    {
+        return $this->role?->label() ?? 'Chamber user';
     }
 }

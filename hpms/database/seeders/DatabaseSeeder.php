@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\Chamber;
 use App\Models\User;
 use App\Services\ChamberProvisioner;
@@ -23,14 +24,15 @@ class DatabaseSeeder extends Seeder
         $chamber = Chamber::query()->orderBy('id')->first()
             ?? Chamber::query()->create(['name' => env('CHAMBER_NAME', 'Homeo-Hall')]);
 
-        if (filled($email) && ! User::query()->where('email', $email)->exists()) {
-            User::query()->create([
-                'chamber_id' => $chamber->id,
+        if (filled($email)) {
+            $admin = User::query()->firstOrNew(['email' => $email]);
+            $admin->fill([
+                'chamber_id' => $admin->chamber_id ?? $chamber->id,
+                'role' => UserRole::Admin,
                 'name' => $ownerName,
-                'designation' => 'Chamber Owner',
-                'email' => $email,
-                'password' => Hash::make($password),
-            ]);
+                'designation' => 'System Administrator',
+                'password' => $admin->exists ? $admin->password : Hash::make($password),
+            ])->save();
         }
 
         $chambers->ensureDefaults($chamber, $ownerName);

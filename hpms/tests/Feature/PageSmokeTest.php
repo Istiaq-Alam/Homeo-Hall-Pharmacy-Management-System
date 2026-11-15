@@ -190,7 +190,7 @@ class PageSmokeTest extends TestCase
             ->assertOk()
             ->assertSee('manifest.webmanifest', false)
             ->assertSee('id="menu-toggle"', false)
-            ->assertSee('id="sidebar-close"', false)
+            ->assertDontSee('id="sidebar-close"', false)
             ->assertSee('id="install-app"', false)
             ->assertSee('viewport-fit=cover', false);
     }

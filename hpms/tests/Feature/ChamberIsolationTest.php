@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Chamber;
 use App\Models\ExpenseCategory;
 use App\Models\Medicine;
@@ -39,29 +40,35 @@ class ChamberIsolationTest extends TestCase
         ];
     }
 
-    public function test_creating_an_admin_account_provisions_a_separate_chamber_and_defaults(): void
+    public function test_an_admin_can_create_a_chamber_owner_with_their_own_chamber_and_defaults(): void
     {
-        $ownerChamber = $this->chamber('Original Chamber');
-        $owner = User::factory()->create(['chamber_id' => $ownerChamber->id, 'name' => 'Original Owner', 'designation' => 'Owner']);
+        $admin = User::factory()->admin()->create();
 
-        $this->actingAs($owner)->post('/admin-accounts', [
+        $this->actingAs($admin)->get('/admin')
+            ->assertOk()
+            ->assertSee('Create an account')
+            ->assertSee('Chamber Owner');
+
+        $this->actingAs($admin)->post(route('admin.accounts.store'), [
+            'role' => UserRole::Owner->value,
             'name' => 'Dr. Rahman',
             'email' => 'rahman@example.com',
             'designation' => 'Chamber Administrator',
+            'chamber_name' => 'Dr. Rahman Chamber',
             'password' => 'correct-password-123',
             'password_confirmation' => 'correct-password-123',
-        ])->assertRedirect()->assertSessionHas('success');
+        ])->assertRedirect(route('admin.index'))->assertSessionHas('success');
 
-        $admin = User::query()->where('email', 'rahman@example.com')->firstOrFail();
-        $this->assertNotSame($ownerChamber->id, $admin->chamber_id);
-        $this->assertSame('Dr. Rahman', $admin->name);
-        $this->assertSame('Chamber Administrator', $admin->designation);
-        $this->assertSame('Dr. Rahman Chamber', $admin->chamber->name);
+        $owner = User::query()->where('email', 'rahman@example.com')->firstOrFail();
+        $this->assertSame(UserRole::Owner, $owner->role);
+        $this->assertNotNull($owner->chamber_id);
+        $this->assertSame('Dr. Rahman', $owner->name);
+        $this->assertSame('Chamber Administrator', $owner->designation);
+        $this->assertSame('Dr. Rahman Chamber', $owner->chamber->name);
 
-        $this->assertSame('Dr. Rahman Chamber', Setting::query()->forChamber($admin->chamber_id)->where('key', 'chamber_name')->value('value'));
-        $this->assertSame(7, MedicineCategory::query()->forChamber($admin->chamber_id)->count());
-        $this->assertSame(9, ExpenseCategory::query()->forChamber($admin->chamber_id)->count());
-        $this->assertSame(7, MedicineCategory::query()->forChamber($ownerChamber->id)->count());
+        $this->assertSame('Dr. Rahman Chamber', Setting::query()->forChamber($owner->chamber_id)->where('key', 'chamber_name')->value('value'));
+        $this->assertSame(7, MedicineCategory::query()->forChamber($owner->chamber_id)->count());
+        $this->assertSame(9, ExpenseCategory::query()->forChamber($owner->chamber_id)->count());
 
         $this->post('/logout');
         $this->post('/login', ['email' => 'rahman@example.com', 'password' => 'correct-password-123'])
@@ -72,16 +79,56 @@ class ChamberIsolationTest extends TestCase
             ->assertSee('Chamber Administrator');
     }
 
-    public function test_a_new_admin_can_rename_their_chamber_and_upload_their_own_logo(): void
+    public function test_an_admin_can_delete_a_chamber_owner_and_their_chamber_data(): void
+    {
+        $admin = User::factory()->admin()->create(['name' => 'System Admin']);
+        $targetChamber = $this->chamber('Target Chamber');
+        $target = User::factory()->create([
+            'chamber_id' => $targetChamber->id,
+            'name' => 'Dr. Target',
+            'designation' => 'Chamber Owner',
+        ]);
+        $category = MedicineCategory::query()->create([
+            'chamber_id' => $targetChamber->id,
+            'name' => 'Target Category',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)->get('/admin')
+            ->assertOk()
+            ->assertSee(route('admin.accounts.destroy', $target), false)
+            ->assertDontSee(route('admin.accounts.destroy', $admin), false);
+
+        $this->actingAs($admin)->delete(route('admin.accounts.destroy', $target, false))
+            ->assertRedirect(route('admin.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('users', ['id' => $target->id]);
+        $this->assertDatabaseMissing('chambers', ['id' => $targetChamber->id]);
+        $this->assertDatabaseMissing('medicine_categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('settings', ['chamber_id' => $targetChamber->id]);
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    }
+
+    public function test_an_admin_cannot_delete_their_own_account(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->delete(route('admin.accounts.destroy', $admin, false))->assertForbidden();
+
+        $this->assertDatabaseHas('users', ['id' => $admin->id]);
+    }
+
+    public function test_a_chamber_owner_can_rename_their_chamber_and_upload_their_own_logo(): void
     {
         Storage::fake('public');
         $ownerChamber = $this->chamber('Owner Chamber');
-        $adminChamber = $this->chamber('Admin Chamber');
+        $adminChamber = $this->chamber('Other Chamber');
         User::factory()->create(['chamber_id' => $ownerChamber->id, 'name' => 'Owner']);
         $admin = User::factory()->create([
             'chamber_id' => $adminChamber->id,
             'name' => 'Dr. Rahman',
-            'designation' => 'Chamber Administrator',
+            'designation' => 'Chamber Owner',
         ]);
         $logo = UploadedFile::fake()->createWithContent(
             'chamber-logo.png',

@@ -6,11 +6,13 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Setting;
 use App\Services\ReportService;
+use App\Support\ChamberContext;
 use App\Support\SimpleXlsxWriter;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -142,7 +144,20 @@ class ReportController extends Controller
         $this->validateDates($request);
         $range = $reports->range($request->input('from', now()->toDateString()), $request->input('to', now()->toDateString()));
         $summary = $reports->summary($range['from'], $range['to']);
-        $pdf = app('dompdf.wrapper')->loadView('reports.pdf', compact('range', 'summary'));
+
+        $user = $request->user();
+        $settings = Setting::query()->pluck('value', 'key');
+        $chamberName = trim((string) (($settings['chamber_name'] ?? null) ?: app(ChamberContext::class)->chamber()?->name ?: 'Chamber'));
+        $administratorName = trim((string) (($settings['owner_name'] ?? null) ?: $user->name ?: 'Chamber administrator'));
+        $generatedAt = now()->timezone(config('app.timezone'));
+        $logoData = null;
+
+        if (! empty($settings['chamber_logo']) && Storage::disk('public')->exists($settings['chamber_logo'])) {
+            $logoData = 'data:'.Storage::disk('public')->mimeType($settings['chamber_logo']).';base64,'.base64_encode(Storage::disk('public')->get($settings['chamber_logo']));
+        }
+
+        $pdf = app('dompdf.wrapper')->loadView('reports.pdf', compact('range', 'summary', 'chamberName', 'administratorName', 'generatedAt', 'logoData'));
+        $pdf->setPaper('a4', 'portrait');
 
         return $pdf->download('homeo-hall-report-'.$range['from'].'-'.$range['to'].'.pdf');
     }

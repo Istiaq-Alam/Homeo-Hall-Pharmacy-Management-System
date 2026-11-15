@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Medicine;
 use App\Models\Purchase;
 use App\Services\TransactionService;
+use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,7 @@ class PurchaseController extends Controller
 
     public function store(Request $request, TransactionService $transactions): RedirectResponse
     {
-        $chamberId = $request->user()->chamber_id;
+        $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate([
             'purchase_date' => ['required', 'date'], 'supplier_name' => ['nullable', 'string', 'max:150'], 'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'], 'items.*.medicine_id' => ['required', 'distinct', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'items.*.unit_price' => ['required', 'numeric', 'min:0.01', 'max:9999999999.99'],

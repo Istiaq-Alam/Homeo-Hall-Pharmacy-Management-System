@@ -1,5 +1,9 @@
+@php
+    $layoutUser = auth()->user();
+    $layoutChamber = app(\App\Support\ChamberContext::class)->chamber();
+@endphp
 <!doctype html>
-<html lang="en">
+<html lang="en" class="app-document">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -14,7 +18,7 @@
         if (this.menuOpen === open) return;
         this.menuOpen = open;
         if (open) {
-            this.$nextTick(() => document.getElementById('sidebar-close')?.focus({ preventScroll: true }));
+            this.$nextTick(() => document.querySelector('#sidebar .nav-link')?.focus({ preventScroll: true }));
         } else if (window.matchMedia('(max-width: 1023px), (orientation: landscape) and (max-height: 500px)').matches) {
             this.$nextTick(() => document.getElementById('menu-toggle')?.focus({ preventScroll: true }));
         }
@@ -22,7 +26,6 @@
 }" :class="{ 'nav-open': menuOpen }" @sidebar-control.window="setMenu($event.detail.open)" @keydown.escape.window="setMenu(false)" @resize.window.debounce.200ms="if (! window.matchMedia('(max-width: 1023px), (orientation: landscape) and (max-height: 500px)').matches) setMenu(false)">
     <div class="app-shell min-h-screen lg:flex">
         <aside id="sidebar" class="sidebar" :class="menuOpen ? 'sidebar-open' : ''">
-            <button type="button" id="sidebar-close" class="sidebar-close" @click="setMenu(false)" aria-label="Close navigation"><span aria-hidden="true">×</span></button>
             <a href="{{ route('dashboard') }}" class="brand">@if(! empty($appSettings['chamber_logo_url']))<img class="brand-logo" src="{{ $appSettings['chamber_logo_url'] }}" alt="{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }} logo">@else<span class="brand-mark">H</span>@endif<span><strong>{{ $appSettings['chamber_name'] ?? 'Homeo-Hall' }}</strong><small>Chamber management</small></span></a>
             <nav class="nav-list" aria-label="Main navigation">
                 <a href="{{ route('dashboard') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('dashboard') ? 'nav-active' : '' }}"><span><x-icon name="dashboard" /></span>Dashboard</a>
@@ -31,15 +34,18 @@
                 <a href="{{ route('sales.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('sales.*') ? 'nav-active' : '' }}"><span><x-icon name="sale" /></span>Sales</a>
                 <a href="{{ route('expenses.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('expenses.*') ? 'nav-active' : '' }}"><span><x-icon name="expense" /></span>Expenses</a>
                 <a href="{{ route('reports.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('reports.*') ? 'nav-active' : '' }}"><span><x-icon name="report" /></span>Reports</a>
+                @if($layoutUser->isAdmin())<a href="{{ route('admin.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('admin.*') ? 'nav-active' : '' }}"><span><x-icon name="admin" /></span>Administration</a>@endif
                 <a href="{{ route('settings.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('settings.*') ? 'nav-active' : '' }}"><span><x-icon name="settings" /></span>Settings</a>
             </nav>
-            <div class="sidebar-bottom"><div class="owner-pill">@if(auth()->user()->avatar_url)<img class="avatar avatar-photo" src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }} profile picture">@else<span class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>@endif<span><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->designation ?: 'Chamber administrator' }}</small></span></div><button type="button" id="install-app" class="nav-link install-link" hidden><span><x-icon name="download" /></span>Install app</button><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form></div>
+            @if($layoutUser->isAdmin() && $layoutChamber)<a class="active-chamber" href="{{ route('admin.index') }}"><span>Managing</span><strong>{{ $layoutChamber->name }}</strong><small>Switch chamber</small></a>@endif
+            <div class="sidebar-bottom"><div class="owner-pill">@if($layoutUser->avatar_url)<img class="avatar avatar-photo" src="{{ $layoutUser->avatar_url }}" alt="{{ $layoutUser->name }} profile picture">@else<span class="avatar">{{ strtoupper(substr($layoutUser->name, 0, 1)) }}</span>@endif<span><strong>{{ $layoutUser->name }}</strong><small>{{ $layoutUser->roleLabel() }}@if($layoutUser->designation) · {{ $layoutUser->designation }}@endif</small></span></div><button type="button" id="install-app" class="nav-link install-link" hidden><span><x-icon name="download" /></span>Install app</button><form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link logout-link" type="submit"><span><x-icon name="logout" /></span>Sign out</button></form></div>
         </aside>
         <div class="sidebar-backdrop" x-show="menuOpen" x-cloak @click="menuOpen = false" aria-hidden="true"></div>
         <div class="app-main flex-1 min-w-0">
             <header class="topbar"><button type="button" id="menu-toggle" class="menu-toggle" @click="setMenu(!menuOpen)" :aria-expanded="menuOpen.toString()" aria-controls="sidebar" aria-label="Toggle navigation"><x-icon name="menu" /></button><div class="topbar-title">@yield('title', 'Dashboard')</div><div class="topbar-date">{{ now()->timezone(config('app.timezone'))->format('l, d M Y') }}</div></header>
             <main class="page-wrap">
                 @if(session('success'))<div class="notice notice-success" role="status">{{ session('success') }}</div>@endif
+                @if(session('error'))<div class="notice notice-error" role="alert">{{ session('error') }}</div>@endif
                 @if($errors->any())<div class="notice notice-error" role="alert"><strong>Please review the form:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
                 @yield('content')
             </main>

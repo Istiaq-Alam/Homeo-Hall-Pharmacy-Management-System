@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Models\Chamber;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,10 +17,17 @@ class SettingsController extends Controller
 {
     public function index(): View
     {
-        $settings = Setting::query()->pluck('value', 'key')->all();
-        $admins = User::query()->with('chamber')->orderBy('name')->get();
+        $user = auth()->user();
+        $context = app(ChamberContext::class);
+        $hasChamber = $context->id() !== null;
+        $canManageChamber = $hasChamber && ! $user->isStaff();
+        $settings = $canManageChamber ? Setting::query()->pluck('value', 'key')->all() : [];
+        $staff = $user->isOwner() && $user->chamber_id !== null
+            ? User::query()->where('chamber_id', $user->chamber_id)->where('role', UserRole::Staff)->orderBy('name')->get()
+            : collect();
+        $activeChamber = $context->chamber();
 
-        return view('settings.index', compact('settings', 'admins'));
+        return view('settings.index', compact('settings', 'staff', 'activeChamber', 'canManageChamber', 'hasChamber'));
     }
 
     public function update(Request $request): RedirectResponse
@@ -51,6 +60,7 @@ class SettingsController extends Controller
         }
 
         $user = $request->user();
+        $chamberId = app(ChamberContext::class)->id();
         $oldAvatar = $user->avatar_path;
         if ($request->hasFile('owner_avatar')) {
             $newAvatar = $request->file('owner_avatar')->store('avatars', 'public');
@@ -68,11 +78,18 @@ class SettingsController extends Controller
         foreach ($data as $key => $value) {
             Setting::query()->updateOrCreate(['key' => $key], ['value' => (string) $value]);
         }
-        $user->name = $data['owner_name'];
-        $user->save();
+        if ($user->isOwner()) {
+            $user->name = $data['owner_name'];
+            $user->save();
+        } elseif ($chamberId !== null) {
+            User::query()
+                ->where('chamber_id', $chamberId)
+                ->where('role', UserRole::Owner)
+                ->update(['name' => $data['owner_name']]);
+        }
 
-        if ($user->chamber_id) {
-            Chamber::query()->whereKey($user->chamber_id)->update(['name' => $data['chamber_name']]);
+        if ($chamberId !== null) {
+            Chamber::query()->whereKey($chamberId)->update(['name' => $data['chamber_name']]);
         }
 
         return back()->with('success', 'Settings saved.');
