@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Sign in · Homeo-Hall</title>@include('partials.pwa-head')@vite(['resources/css/app.css','resources/js/app.js'])</head>
 <body class="login-page"><main class="login-shell">
     <section class="login-story">
-        <a href="{{ route('login') }}" class="brand"><span class="brand-mark" style="background:#fff;color:#0066cc">H</span><span><strong>Homeo-Hall</strong><small>Chamber management</small></span></a>
+        <a href="{{ route('login') }}" class="brand"><img class="brand-mark brand-mark-image" src="{{ asset('icons/brand-mark.png') }}" alt="" width="40" height="40"><span><strong>Homeo-Hall</strong><small>Chamber management</small></span></a>
         <div><p class="eyebrow hero-eyebrow">HOMEOPATHIC MEDICINE INVENTORY</p><h1>Inventory, sales, and profit — in one calm place.</h1><p>Keep the chamber’s medicines, purchases, sales, and daily financial records clear and current.</p></div>
         <div class="story-foot">Private chamber access · Built for homeopathic chambers</div>
     </section>

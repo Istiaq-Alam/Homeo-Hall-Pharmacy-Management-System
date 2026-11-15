@@ -1,405 +1,385 @@
-# MASTER DEVELOPMENT PROMPT
-# Homeo-Hall — Homeopathic Medicine Inventory & Financial Management System (HPMS)
+# FEATURE DEVELOPMENT PROMPT
+# HPMS — Complete English to Bangla Localization System
 
 ## 1. Your Role
 
-Act as a senior full-stack Laravel developer, software architect, database engineer, UI/UX designer, and QA engineer.
+Act as a senior Laravel developer, localization engineer, UI/UX designer, and QA engineer.
 
-Your task is to inspect, plan, develop, test, and complete a production-quality web application named:
+I have already completed the development of my web application:
 
-**Homeo-Hall — Homeopathic Medicine Inventory & Financial Management System**
+**Homeo-Hall (HPMS) — Homeopathic Medicine Inventory & Financial Management System**
 
-The project directory already exists and is named:
+Your task is to add a complete English and Bangla language-switching feature to the existing application.
 
-`HPMS`
+The project is already built and functional.
 
-The project has already been initialized as a Laravel application. Do not create another Laravel project inside it. Work directly within the existing project.
+**IMPORTANT: Do not rebuild the application. Modify the existing project and integrate localization into its current architecture.**
 
-Build a complete, functional application using PHP, Laravel, MySQL, Blade, Tailwind CSS, and JavaScript.
+The primary user is my father, who will use the application in Bangla.
 
-Do not merely create a UI prototype or static dashboard. Every major feature must be connected to a working backend, database, validation system, and business logic.
-
----
-
-# 2. Project Background
-
-This application is being developed for a private homeopathic medicine chamber in Bangladesh.
-
-The application will be used by exactly one person: the chamber owner, who is also the doctor.
-
-The owner needs a simple web-based system to maintain records of:
-
-1. Homeopathic medicines.
-2. Medicine purchases.
-3. Medicine sales.
-4. Current medicine inventory.
-5. Other chamber expenses.
-6. Daily, monthly, and yearly financial reports.
-7. Estimated business profit.
-
-The owner will manually enter all information.
-
-The application is NOT an online pharmacy, e-commerce website, hospital management system, or multi-user pharmacy ERP.
-
-The owner is not technically experienced. The interface must therefore be straightforward, readable, consistent, and easy to operate.
-
-## Main objective
-
-Replace manual notebooks and calculations with a reliable digital inventory and financial record-keeping system.
+The objective is to make the entire application available in natural, easy-to-understand Bangla while retaining English as an alternative.
 
 ---
 
-# 3. Strict Scope — Follow This Carefully
+# 2. Main Requirement
 
-This is a single-user application.
+Add a simple language toggle button to the existing sticky header.
 
-Implement only the features necessary for the requirements below.
+The toggle must allow the user to switch between:
 
-## Included
+- English
+- বাংলা (Bangla)
 
-- Single owner login.
-- Dashboard.
-- Medicine inventory management.
-- Medicine categories.
-- Purchase recording.
-- Sales recording.
-- Automatic stock updates.
-- Chamber expense recording.
-- Stock movement history.
-- Daily financial overview.
-- Monthly financial reports.
-- Yearly financial reports.
-- Custom date-range reports.
-- Medicine-wise sales reports.
-- Low-stock alerts.
-- PDF export.
-- Excel/CSV export.
-- Print-friendly reports.
-- Application settings.
-- Database backup guidance and export capability.
+The button must be visible and accessible on every authenticated application page.
 
-## Explicitly excluded
+### Expected appearance
 
-DO NOT implement:
+When English is active:
 
-- Patient management.
-- Patient medical records.
-- Prescriptions.
-- Doctor appointment scheduling.
-- Customer accounts.
-- Customer registration.
-- Customer phone numbers or addresses.
-- Online ordering.
-- E-commerce functionality.
-- Delivery management.
-- Payment gateways.
-- bKash integration.
-- Nagad integration.
-- Card payment integration.
-- Online payment processing.
-- Payment-method management.
-- Employee management.
-- Salary management.
-- Supplier account management.
-- Multi-branch management.
-- Pharmacy franchise management.
-- Complex accounting or ERP features.
-- Subscription management.
-- Public registration.
-- Multiple user roles.
+`EN | বাংলা`
 
-A supplier name may be stored as optional plain text in a purchase record. Do not create a supplier management module.
+When Bangla is active:
 
-A sale is simply a manually recorded medicine transaction. It does not require customer details or payment integration.
+`English | বাংলা`
 
-Do not expand the scope without explicit approval.
+Clearly indicate which language is currently selected.
+
+Use a compact button that fits naturally into the existing header.
+
+Do not create a separate language settings page.
+
+Do not create a large dropdown or complicated language selection interface.
+
+The language switch should be a simple, normal toggle-style control.
+
+## Expected behavior
+
+1. The user opens HPMS.
+2. The application displays the currently selected language.
+3. The user clicks the language button.
+4. The entire application changes to the other language.
+5. The user remains on the same page.
+6. The selected language remains active while navigating between pages.
+7. The preference is remembered when the user logs out and logs in again, where supported by the existing authentication architecture.
+
+The language change must not affect any business data.
 
 ---
 
-# 4. Technology Stack
+# 3. Technology and Localization Architecture
 
-Use the following stack:
+Use Laravel's native localization system.
 
-| Component | Technology |
-|---|---|
-| Backend | PHP 8.3+ |
-| Framework | Existing Laravel installation |
-| Database | MySQL 8.x |
-| ORM | Laravel Eloquent |
-| Frontend | Laravel Blade |
-| CSS | Tailwind CSS |
-| JavaScript | Alpine.js |
-| Charts | Chart.js |
-| Icons | Lucide Icons |
-| PDF | barryvdh/laravel-dompdf |
-| Excel | Laravel Excel / PhpSpreadsheet |
-| Authentication | Laravel authentication |
-| Testing | PHPUnit or Pest |
-| Version control | Git |
+Do not use Google Translate, browser translation, external translation APIs, or third-party translation services.
 
-Use the Laravel version already installed in HPMS. Inspect its `composer.json` and installed dependencies before making changes.
-
-Do not upgrade Laravel or replace major dependencies unnecessarily.
-
-Use stable package versions compatible with the existing Laravel and PHP versions.
-
-## Architecture
-
-Use a conventional Laravel monolithic architecture.
-
-Preferred structure:
-
-- Laravel controllers for HTTP requests.
-- Eloquent models for database entities.
-- Form Request classes for validation.
-- Service classes for business logic.
-- Blade templates for frontend rendering.
-- Middleware for authentication and security.
-- Database migrations and seeders.
-- Automated feature and unit tests.
-
-Do not introduce unnecessary microservices, APIs, frontend frameworks, or infrastructure complexity.
-
----
-
-# 5. Application Identity and Design
-
-Application name:
-
-**Homeo-Hall**
-
-Short name:
-
-**HPMS**
-
-Application subtitle:
-
-**Homeopathic Medicine Inventory & Financial Management System**
-
-Target audience: a single homeopathic chamber owner in Bangladesh.
-
-## Design direction
-
-Create a modern, professional, clean administrative dashboard.
-
-The design should feel like a lightweight business management application rather than a complicated enterprise ERP.
+All translations must be stored locally in the application.
 
 Use:
 
-- Clean sidebar navigation.
-- Responsive layout.
-- White or light-neutral backgrounds.
-- Subtle borders and shadows.
-- Consistent spacing.
-- Readable typography.
-- Rounded cards and buttons.
-- Clear form labels.
-- Consistent status indicators.
-- Lucide icons.
-- Useful empty states.
-- Confirmation dialogs for destructive actions.
-- Toast notifications for successful operations and errors.
+- Laravel localization.
+- Laravel translation files.
+- Blade translation helpers.
+- Locale middleware.
+- Session or persistent user locale preference.
+- JavaScript translation dictionaries where required.
+- Existing frontend architecture.
 
-Avoid:
+Supported locales:
 
-- Excessive animations.
-- Overly colorful interfaces.
-- Crowded dashboards.
-- Tiny text.
-- Complicated forms.
-- Unnecessary decorative elements.
+| Language | Locale |
+|---|---|
+| English | en |
+| Bangla | bn |
 
-The application must work on desktop, tablet, and mobile.
+Default locale: `en`
 
-## Currency and locale
+Fallback locale: `en`
 
-Currency: Bangladeshi Taka (BDT).
-
-Currency symbol: ৳
-
-Display money as:
-
-`৳1,250.00`
-
-Use `Asia/Dhaka` as the application timezone.
-
-Display dates in a readable Bangladesh-friendly format.
-
-All financial values must use decimal database types, never floating-point types.
+The application must work without an internet connection for translation functionality.
 
 ---
 
-# 6. Main Navigation
+# 4. First Step — Inspect the Existing Project
 
-Create a sidebar with these sections:
+Before changing any code, inspect the existing HPMS project.
 
-1. Dashboard
-2. Medicines
-3. Purchases
-4. Sales
-5. Expenses
-6. Reports
-7. Settings
-8. Logout
+Identify:
 
-Suggested routes:
+- Laravel version.
+- Existing Blade layouts.
+- Existing sticky header component.
+- Existing sidebar component.
+- Authentication implementation.
+- Existing settings system.
+- Existing user model.
+- Existing JavaScript structure.
+- Existing Chart.js implementation.
+- Existing PDF export implementation.
+- Existing Excel/CSV export implementation.
+- Existing validation messages.
+- Existing frontend components.
 
-- `/dashboard`
-- `/medicines`
-- `/purchases`
-- `/sales`
-- `/expenses`
-- `/reports`
-- `/settings`
+Locate every page and component that contains visible English text.
 
-All application pages except the login page must require authentication.
+Do not assume that the project uses the same folder structure as a fresh Laravel installation.
+
+Use the actual structure of the existing project.
+
+Preserve all existing features and functionality.
 
 ---
 
-# 7. Module 1 — Authentication
+# 5. Language Switcher in the Sticky Header
 
-Create a secure single-owner authentication system.
+This is the most important UI requirement.
+
+Add the language switcher to the existing sticky header.
+
+### Design
+
+Create a compact toggle-style control.
+
+Example:
+
+`EN  |  বাংলা`
 
 Requirements:
 
-- Login page.
-- Logout functionality.
-- Secure password hashing.
-- CSRF protection.
-- Login throttling.
-- Session security.
-- No public registration.
-- No user management page.
-- No role management.
+- Small and clean.
+- Consistent with the existing design.
+- Clearly show the active language.
+- Responsive on mobile.
+- Accessible using keyboard navigation.
+- Have an appropriate accessible label.
+- Use existing button styling.
+- Avoid unnecessary animations.
+- Do not make the header significantly taller.
 
-Create the initial owner account using a database seeder or a secure one-time setup process.
+When clicked, switch the application locale.
 
-Do not hardcode real production credentials.
+The language switcher should work from every application page.
 
-Use environment variables or a secure setup process for the initial account.
+If the user is viewing:
 
-The application must prevent unauthorized access to all dashboard and management routes.
+- Dashboard: remain on dashboard.
+- Medicines: remain on medicines.
+- Purchases: remain on purchases.
+- Sales: remain on sales.
+- Expenses: remain on expenses.
+- Reports: remain on reports.
+- Settings: remain on settings.
+
+Do not redirect every language change to the dashboard.
+
+Preserve query parameters where appropriate, including search terms, pagination, selected date ranges, and report filters.
+
+Avoid submitting the language switch as part of an existing form.
 
 ---
 
-# 8. Module 2 — Dashboard
+# 6. Language Preference Persistence
 
-Create a useful overview of the chamber's current business condition.
+The selected language must remain consistent throughout the application.
 
-## Dashboard summary cards
+Inspect the existing authentication and user settings architecture.
 
-Display:
+Prefer storing the owner's language preference persistently if the application already has an appropriate user-preference or settings mechanism.
 
-1. Today's Sales.
-2. Today's Purchases.
-3. Today's Other Expenses.
-4. Today's Estimated Gross Profit.
-5. Today's Estimated Net Operating Profit.
-6. Total Medicines.
-7. Total Stock Units.
-8. Low-Stock Medicines.
-9. Out-of-Stock Medicines.
-10. Current Inventory Value.
+If necessary, add a nullable `locale` field to the existing users table through a new migration.
 
-## Monthly summary
+Do not modify or recreate existing user records destructively.
 
-Display:
+For an authenticated user:
 
-- Current Month Sales.
-- Current Month Purchases.
-- Current Month Other Expenses.
-- Current Month COGS.
-- Current Month Gross Profit.
-- Current Month Net Operating Profit.
+- Load their saved locale.
+- Apply it to the application.
+- Update the preference when the language is changed.
 
-## Charts
+For guests, including the login page:
 
-Use Chart.js.
+- Use the session locale.
+- Allow language switching.
+- Preserve the selected locale during navigation.
 
-Create:
+When the owner logs in, load their saved preference.
 
-- Monthly Sales Overview.
-- Monthly Expense Overview.
-- Sales vs Purchases Comparison.
-- Monthly Net Profit Trend.
+When the owner logs out, do not accidentally expose authenticated information or break the guest language preference.
 
-Use real database data. Do not hardcode chart values.
+Validate locale values against an explicit allowlist:
 
-Charts should update according to available database records and selected date ranges where appropriate.
+`en`, `bn`
 
-## Recent activity
+Never accept arbitrary locale names from request parameters.
 
-Display recent:
+---
 
-- Sales.
+# 7. Laravel Localization Implementation
+
+Use Laravel's standard translation structure.
+
+Preferred structure:
+
+```text
+lang/
+    en/
+        messages.php
+        navigation.php
+        dashboard.php
+        medicines.php
+        purchases.php
+        sales.php
+        expenses.php
+        reports.php
+        settings.php
+        validation.php
+        common.php
+
+    bn/
+        messages.php
+        navigation.php
+        dashboard.php
+        medicines.php
+        purchases.php
+        sales.php
+        expenses.php
+        reports.php
+        settings.php
+        validation.php
+        common.php
+```
+
+If the existing Laravel version uses a different localization directory convention, follow the installed version.
+
+Use readable translation keys.
+
+Example:
+
+```php
+__('navigation.dashboard')
+__('navigation.medicines')
+__('dashboard.today_sales')
+__('medicines.add_medicine')
+__('sales.total_amount')
+```
+
+Use translation files instead of writing conditional language logic throughout Blade templates.
+
+Avoid code such as:
+
+```php
+if (app()->getLocale() === 'bn') {
+    // ...
+}
+```
+
+inside every page.
+
+Centralize translations and locale handling.
+
+Implement a locale middleware and register it correctly according to the installed Laravel version.
+
+Ensure that the middleware executes before localized views and validation messages are rendered.
+
+---
+
+# 8. Translate the Entire Application
+
+Do not translate only the dashboard or sidebar.
+
+Every user-visible interface element must support both languages.
+
+## A. Authentication
+
+Translate:
+
+- Login.
+- Email address.
+- Password.
+- Remember me.
+- Sign in.
+- Logout.
+- Forgot password, if implemented.
+- Validation errors.
+- Login failure messages.
+
+## B. Sidebar Navigation
+
+Translate:
+
+- Dashboard.
+- Medicines.
 - Purchases.
+- Sales.
 - Expenses.
-- Stock adjustments.
+- Reports.
+- Settings.
+- Logout.
 
-Each item should link to its relevant details page.
+## C. Dashboard
 
-## Quick actions
+Translate:
 
-Add buttons:
-
+- Dashboard title.
+- Today's Sales.
+- Today's Purchases.
+- Today's Expenses.
+- Gross Profit.
+- Net Operating Profit.
+- Total Medicines.
+- Total Stock.
+- Low Stock.
+- Out of Stock.
+- Monthly Sales.
+- Monthly Expenses.
+- Monthly Profit.
+- Recent Activities.
+- Quick Actions.
 - Add Medicine.
 - Record Purchase.
 - Record Sale.
 - Add Expense.
 - View Reports.
 
-The dashboard must be responsive and must not generate misleading financial calculations.
+Translate all chart titles, legends, axis labels, tooltips, and empty states.
 
----
+## D. Medicines
 
-# 9. Module 3 — Medicine Inventory
+Translate:
 
-Create complete medicine inventory management.
-
-## Medicine information
-
-Each medicine should have:
-
-- ID: automatic.
+- Medicine Inventory.
+- Add Medicine.
+- Edit Medicine.
 - Medicine Name.
 - Potency.
 - Category.
-- Medicine Form.
+- Form.
 - Unit.
 - Purchase Price.
 - Selling Price.
+- Average Cost.
 - Current Stock.
 - Minimum Stock.
 - Description.
-- Status: Active or Inactive.
-- Created At.
-- Updated At.
+- Status.
+- Active.
+- Inactive.
+- Search.
+- Filter.
+- Save.
+- Update.
+- Cancel.
+- Delete or Deactivate, if implemented.
+- Stock Adjustment.
+- Increase Stock.
+- Decrease Stock.
+- Adjustment Reason.
+- In Stock.
+- Low Stock.
+- Out of Stock.
 
-Example medicine records:
+Translate medicine category and form labels where they are system-defined.
 
-- Nux Vomica — 30C.
-- Nux Vomica — 200C.
-- Arnica Montana — 30C.
-- Belladonna — 200C.
-- Sulphur — 1M.
-
-IMPORTANT:
-
-Different potencies of the same medicine must be separate inventory items.
-
-For example:
-
-`Nux Vomica 30C`
-
-and
-
-`Nux Vomica 200C`
-
-must not share the same stock quantity.
-
-## Medicine categories
-
-Create default categories:
+Examples:
 
 - Mother Tincture.
 - Dilution.
@@ -409,299 +389,65 @@ Create default categories:
 - Ointment.
 - Other.
 
-Allow the owner to add, edit, and deactivate categories.
+## E. Purchases
 
-## Medicine forms
+Translate:
 
-Examples:
-
-- Liquid.
-- Globules.
-- Tablets.
-- Powder.
-- Ointment.
-- Other.
-
-## Units
-
-Examples:
-
-- Bottle.
-- Packet.
-- Vial.
-- Tube.
-- Box.
-- Piece.
-
-Allow sensible customization if needed.
-
-## Inventory features
-
-Implement:
-
-- Add medicine.
-- Edit medicine information.
-- View medicine details.
-- Deactivate medicine.
-- Search by medicine name.
-- Search by potency.
-- Filter by category.
-- Filter by medicine form.
-- Filter low-stock medicines.
-- Filter out-of-stock medicines.
-- Pagination.
-- Sort by name, stock, price, and date.
-
-Display stock status clearly:
-
-- In Stock.
-- Low Stock.
-- Out of Stock.
-
-## Stock rules
-
-The current stock must be updated automatically through purchase and sale operations.
-
-Do not allow arbitrary stock changes without a recorded stock adjustment.
-
-If manual stock correction is required, provide a stock adjustment feature with:
-
-- Medicine.
-- Adjustment type: Increase or Decrease.
-- Quantity.
-- Reason.
-- Date.
-- Notes.
-
-Every adjustment must create a stock movement record.
-
-Never allow negative stock.
-
----
-
-# 10. Module 4 — Purchase Management
-
-The owner purchases medicines and manually records those purchases.
-
-Create a purchase management system.
-
-## Purchase entry fields
-
-- Purchase ID: automatic.
-- Purchase Number: generated automatically.
+- Purchase Management.
+- Record Purchase.
+- Purchase Number.
 - Purchase Date.
+- Supplier Name.
 - Medicine.
 - Quantity.
-- Unit Purchase Cost.
-- Total Amount.
-- Optional Supplier Name.
-- Notes.
-- Created At.
+- Unit Cost.
+- Line Total.
+- Purchase Total.
+- Add Item.
+- Remove Item.
+- Purchase History.
+- Purchase Details.
+- Cancel Purchase.
+- Cancellation Reason.
 
-A purchase may contain multiple medicine items.
+## F. Sales
 
-Therefore, use a purchase header and purchase item structure.
+Translate:
 
-## Purchase form
-
-Allow the owner to:
-
-1. Create a new purchase.
-2. Select an existing medicine.
-3. Add multiple medicine rows.
-4. Enter quantity for each medicine.
-5. Enter purchase cost per unit.
-6. Calculate each line total automatically.
-7. Calculate the overall purchase total.
-8. Save the purchase.
-
-Formula:
-
-`Line Total = Quantity × Unit Purchase Cost`
-
-`Purchase Total = Sum of All Line Totals`
-
-Show the calculated totals before submission.
-
-## Purchase behavior
-
-When a purchase is saved successfully:
-
-- Increase the stock of each medicine.
-- Save the purchase record.
-- Save purchase item records.
-- Create stock movement records.
-- Preserve the purchase cost for historical reporting.
-
-All these operations must happen inside one database transaction.
-
-If any operation fails, roll back the complete transaction.
-
-## Purchase history
-
-Create:
-
-- Purchase list.
-- Purchase details.
-- Search by purchase number.
-- Filter by date.
-- Filter by medicine.
-- Monthly purchase totals.
-- Purchase item history.
-
-## Purchase corrections
-
-Do not silently delete completed purchases.
-
-Provide a safe cancellation or reversal process.
-
-When a purchase is cancelled:
-
-- Reverse its stock additions.
-- Record corresponding stock movements.
-- Preserve the original transaction.
-- Store the cancellation reason.
-- Prevent repeated cancellation.
-
-If an incorrect purchase is edited, ensure stock quantities are reconciled correctly and atomically.
-
----
-
-# 11. Module 5 — Sales Management
-
-Create a simple manual sales recording system.
-
-There are no customers, patient accounts, online orders, or payment integrations.
-
-## Sale entry fields
-
-- Sale ID: automatic.
-- Sale Number: automatically generated.
+- Sales Management.
+- Record Sale.
+- Sale Number.
 - Sale Date.
 - Medicine.
+- Available Stock.
 - Quantity.
-- Unit Selling Price.
-- Unit Cost Price.
+- Selling Price.
+- Unit Cost.
 - Line Total.
-- Overall Total.
-- Notes.
-- Created At.
+- Total Amount.
+- Add Item.
+- Remove Item.
+- Sales History.
+- Sale Details.
+- Cancel Sale.
+- Cancellation Reason.
+- Insufficient Stock.
 
-A sale may contain multiple medicine items.
+## G. Expenses
 
-## Sale form
+Translate:
 
-Allow the owner to:
-
-1. Create a new sale.
-2. Select a medicine.
-3. See available stock.
-4. Enter the quantity sold.
-5. Automatically retrieve the default selling price.
-6. Allow the owner to adjust the actual selling price.
-7. Calculate line totals.
-8. Add additional medicine rows.
-9. Calculate the final sale total.
-10. Save the transaction.
-
-Formula:
-
-`Line Total = Quantity × Actual Selling Price`
-
-`Sale Total = Sum of All Line Totals`
-
-## Important historical price rule
-
-When a sale is created, store both:
-
-- Actual unit selling price.
-- Unit cost price at the time of sale.
-
-Do not calculate historical profit using the medicine's current purchase price.
-
-The sale item must preserve the historical cost used for the profit calculation.
-
-For the initial implementation, use a documented weighted-average inventory cost method.
-
-When purchases increase inventory, calculate the new weighted-average cost:
-
-`New Average Cost = ((Existing Stock × Existing Average Cost) + (Purchased Quantity × New Purchase Unit Cost)) / (Existing Stock + Purchased Quantity)`
-
-When a sale is recorded, copy the current weighted-average cost into the sale item as its unit cost price.
-
-When stock becomes zero, reset the inventory average cost according to a documented and consistent rule.
-
-## Sale behavior
-
-When a sale is successfully saved:
-
-- Decrease medicine stock.
-- Create sale record.
-- Create sale item records.
-- Store historical unit selling prices.
-- Store historical unit cost prices.
-- Create stock movement records.
-- Update dashboard and reports automatically.
-
-All operations must happen inside a database transaction.
-
-Lock relevant medicine rows during stock validation and updates to reduce concurrency problems.
-
-Never allow sales that exceed available stock.
-
-## Sales history
-
-Create:
-
-- Sales list.
-- Sale details.
-- Search by sale number.
-- Filter by date.
-- Filter by medicine.
-- Daily sales totals.
-- Monthly sales totals.
-- Medicine-wise sales report.
-
-## Sale cancellation
-
-Completed sales must not be permanently deleted.
-
-Provide a cancellation or reversal operation.
-
-When a sale is cancelled:
-
-- Restore sold stock.
-- Create reversal stock movements.
-- Preserve the original sale record.
-- Store the cancellation reason.
-- Prevent repeated cancellation.
-
-Ensure cancelled transactions are excluded from normal sales and profit reports.
-
----
-
-# 12. Module 6 — Expense Management
-
-This module is for other chamber operating expenses.
-
-IMPORTANT:
-
-Medicine purchases are inventory acquisitions. Do not record medicine purchases as ordinary chamber expenses.
-
-Create a separate expense system.
-
-## Expense fields
-
-- Expense ID.
+- Expense Management.
+- Add Expense.
 - Expense Date.
 - Expense Category.
 - Description.
 - Amount.
 - Notes.
-- Created At.
-- Updated At.
+- Expense History.
+- Category Management.
 
-## Default expense categories
+Translate default categories:
 
 - Chamber Rent.
 - Electricity.
@@ -713,1012 +459,662 @@ Create a separate expense system.
 - Maintenance.
 - Other.
 
-Allow the owner to add, edit, and deactivate expense categories.
+## H. Reports
 
-## Features
+Translate:
 
-- Add expense.
-- Edit expense.
-- View expense details.
-- Search expenses.
-- Filter by date.
-- Filter by category.
-- Daily expense totals.
-- Monthly expense totals.
-- Category-wise expense totals.
-
-Use decimal values for all amounts.
-
-For incorrect expense records, provide safe editing or cancellation with an audit trail.
-
----
-
-# 13. Module 7 — Reports and Analytics
-
-This is one of the most important modules.
-
-Create a complete reporting section with:
-
-- Daily reports.
-- Monthly reports.
-- Yearly reports.
-- Custom date-range reports.
-
-The owner must be able to select a date range and generate reports from real database information.
-
-## Financial definitions
-
-Use these exact accounting definitions.
-
-### Sales Revenue
-
-Total valid sales revenue for the selected period.
-
-### Purchases
-
-Total amount spent acquiring medicine stock during the selected period.
-
-Purchases are displayed as cash outflow/inventory acquisition, not automatically treated as an operating expense.
-
-### Cost of Goods Sold (COGS)
-
-Total historical inventory cost of the medicine quantities sold during the selected period.
-
-Calculate it from the stored unit cost on sale items.
-
-### Gross Profit
-
-`Gross Profit = Sales Revenue - COGS`
-
-### Other Operating Expenses
-
-Total valid chamber expenses during the selected period.
-
-### Net Operating Profit
-
-`Net Operating Profit = Gross Profit - Other Operating Expenses`
-
-### Inventory Quantity
-
-`Closing Stock = Opening Stock + Purchased Quantity - Sold Quantity + Stock Adjustments`
-
-Cancelled purchases and cancelled sales must be reversed correctly.
-
-### Inventory Value
-
-Calculate inventory value using the documented weighted-average inventory cost method.
-
-Do not confuse inventory value with monthly expenses.
-
-## Required report sections
-
-### A. Daily Financial Report
-
-Display:
-
-- Total Sales.
-- Total Purchases.
-- COGS.
+- Reports & Analytics.
+- Daily Report.
+- Monthly Report.
+- Yearly Report.
+- Custom Date Range.
+- Start Date.
+- End Date.
+- Generate Report.
+- Sales Revenue.
+- Purchases.
+- Cost of Goods Sold.
 - Gross Profit.
-- Other Expenses.
+- Operating Expenses.
 - Net Operating Profit.
-- Number of Sales.
-- Number of Purchase Records.
-- Number of Expense Records.
-
-### B. Monthly Financial Report
-
-Display:
-
-- Monthly Sales.
-- Monthly Purchases.
-- Monthly COGS.
-- Monthly Gross Profit.
-- Monthly Other Expenses.
-- Monthly Net Operating Profit.
-- Closing Inventory Value.
+- Closing Stock.
+- Inventory Value.
 - Total Units Sold.
 - Total Units Purchased.
+- Medicine-wise Sales.
+- Expense Report.
+- Stock Movement.
+- Export PDF.
+- Export Excel.
+- Export CSV.
+- Print.
 
-Also show a monthly comparison chart.
+Translate all report table headings, chart labels, filters, summaries, and empty states.
 
-### C. Yearly Report
+## I. Settings
 
-Show:
+Translate:
 
-- Sales by month.
-- Purchases by month.
-- COGS by month.
-- Operating expenses by month.
-- Gross profit by month.
-- Net operating profit by month.
-
-### D. Inventory Report
-
-Show:
-
-- Medicine Name.
-- Potency.
-- Category.
-- Current Quantity.
-- Minimum Stock.
-- Average Unit Cost.
-- Selling Price.
-- Inventory Value.
-- Stock Status.
-
-### E. Medicine-wise Sales Report
-
-Show:
-
-- Medicine.
-- Potency.
-- Total Quantity Sold.
-- Total Revenue.
-- Total COGS.
-- Gross Profit.
-
-### F. Expense Report
-
-Show:
-
-- Expense Category.
-- Total Amount.
-- Number of Transactions.
-- Date Range.
-
-### G. Low Stock Report
-
-Show all medicines at or below their configured minimum stock.
-
-### H. Stock Movement Report
-
-Show:
-
-- Date.
-- Medicine.
-- Movement Type.
-- Quantity.
-- Reference.
-- Reason.
-- Previous and resulting stock where available.
-
-## Export
-
-Support:
-
-- PDF.
-- Excel (.xlsx).
-- CSV.
-- Browser print.
-
-Exports must respect the currently selected report filters and date range.
-
-Use clear report titles, currency formatting, date ranges, and summary totals.
-
----
-
-# 14. Module 8 — Settings
-
-Create a simple settings page.
-
-Include:
-
-- Chamber/Application Name.
+- Application Settings.
+- Application Name.
 - Owner Name.
 - Currency.
 - Timezone.
-- Default low-stock behavior.
-- Report preferences.
-- Password change.
-
-Default values:
-
-- Application Name: Homeo-Hall.
-- Currency: BDT.
-- Currency Symbol: ৳.
-- Timezone: Asia/Dhaka.
-
-Do not create unnecessary settings.
-
----
-
-# 15. Database Design
-
-Use MySQL and Laravel migrations.
-
-Design a normalized relational database with proper foreign keys, indexes, constraints, and timestamps.
-
-Recommended core tables:
-
-1. users
-2. medicine_categories
-3. medicines
-4. purchases
-5. purchase_items
-6. sales
-7. sale_items
-8. expense_categories
-9. expenses
-10. stock_movements
-11. stock_adjustments, if a separate adjustment header is needed
-12. settings
-
-You may add a small number of necessary supporting tables if justified, but avoid unnecessary complexity.
-
-## Suggested relationships
-
-- One category has many medicines.
-- One medicine belongs to one category.
-- One purchase has many purchase items.
-- One purchase item belongs to one medicine.
-- One sale has many sale items.
-- One sale item belongs to one medicine.
-- One expense category has many expenses.
-- One medicine has many stock movements.
-- One owner records purchases, sales, and expenses.
-
-## Important database requirements
-
-### Medicines
-
-Include:
-
-- id
-- category_id
-- name
-- potency
-- form
-- unit
-- purchase_price
-- selling_price
-- average_cost
-- stock_quantity
-- minimum_stock
-- description
-- is_active
-- timestamps
-- soft deletes where appropriate
-
-Consider an appropriate uniqueness rule for the medicine identity, such as name + potency + form + unit, while allowing the owner to correct records safely.
-
-### Purchases
-
-Include:
-
-- id
-- purchase_number
-- purchase_date
-- supplier_name (nullable)
-- total_amount
-- status
-- notes
-- timestamps
-
-### Purchase Items
-
-Include:
-
-- id
-- purchase_id
-- medicine_id
-- quantity
-- unit_cost
-- line_total
-- timestamps
-
-### Sales
-
-Include:
-
-- id
-- sale_number
-- sale_date
-- total_amount
-- status
-- notes
-- timestamps
-
-### Sale Items
-
-Include:
-
-- id
-- sale_id
-- medicine_id
-- quantity
-- unit_selling_price
-- unit_cost_price
-- line_total
-- line_cost_total
-- timestamps
-
-### Expenses
-
-Include:
-
-- id
-- expense_category_id
-- expense_date
-- description
-- amount
-- notes
-- status
-- timestamps
-
-### Stock Movements
-
-Include:
-
-- id
-- medicine_id
-- movement_type
-- quantity
-- reference_type
-- reference_id
-- previous_stock
-- resulting_stock
-- reason
-- movement_date
-- timestamps
-
-Use a reliable reference strategy for purchase, sale, and adjustment records.
-
-### Database precision
-
-Use appropriate DECIMAL columns, such as:
-
-`DECIMAL(12,2)` for money.
-
-Use integer or appropriately sized decimal quantity fields depending on the units supported. Document the decision.
-
-Use foreign key constraints.
-
-Index:
-
-- Medicine names.
-- Medicine categories.
-- Purchase dates.
-- Sale dates.
-- Expense dates.
-- Purchase and sale numbers.
-- Stock movement medicine/date references.
-
-Avoid storing calculated totals as the only source of truth. Validate totals on the server and preserve transaction-level amounts for historical accuracy.
-
----
-
-# 16. Critical Business Logic and Data Integrity
-
-Treat this section as mandatory.
-
-## A. Database transactions
-
-Purchase, sale, cancellation, and stock adjustment operations must be atomic.
-
-Use Laravel database transactions.
-
-## B. Stock ledger
-
-Every stock change must generate a stock movement record.
-
-The medicine's current stock must reconcile with the stock movement history.
-
-Do not allow direct, untracked stock modifications.
-
-## C. No negative stock
-
-Never allow a sale or stock decrease that results in negative stock.
-
-Validate stock on the server, not only in JavaScript.
-
-## D. Historical prices
-
-Historical sales must not change when the owner updates a medicine's current purchase or selling price.
-
-Store the actual price and cost on every sale item.
-
-## E. Cancellation
-
-Never permanently delete completed purchases or sales.
-
-Use reversible cancellation records and corresponding stock movements.
-
-Cancelled transactions must not count toward sales, COGS, purchases, expenses, or profit totals.
-
-## F. Concurrency
-
-Use database transactions and row-level locks where appropriate when updating inventory.
-
-## G. Auditability
-
-Preserve enough information to understand:
-
-- What changed.
-- Which medicine was affected.
-- When it happened.
-- How much stock changed.
-- Which transaction caused it.
-- Why a manual adjustment was made.
-
-## H. Historical report accuracy
-
-Reports must use transaction dates and historical cost values.
-
-Changing a medicine's current price must not rewrite historical financial results.
-
-## I. Date handling
-
-Use Asia/Dhaka as the display timezone.
-
-Use consistent database date/time storage and conversion rules.
-
-Date-range reports must include the entire selected dates correctly.
-
----
-
-# 17. User Interface and Pages
-
-Create the following pages.
-
-## Authentication
-
-- Login.
-
-## Dashboard
-
-- Dashboard overview.
-
-## Medicines
-
-- Medicine list.
-- Add medicine.
-- Edit medicine.
-- Medicine details.
-- Categories.
-- Stock adjustment.
-
-## Purchases
-
-- Purchase list.
-- Create purchase.
-- Purchase details.
-- Purchase cancellation.
-
-## Sales
-
-- Sales list.
-- Create sale.
-- Sale details.
-- Sale cancellation.
-
-## Expenses
-
-- Expense list.
-- Add expense.
-- Edit expense.
-- Expense details.
-- Expense categories.
-
-## Reports
-
-- Reports overview.
-- Daily report.
-- Monthly report.
-- Yearly report.
-- Custom date report.
-- Inventory report.
-- Medicine-wise sales report.
-- Expense report.
-- Stock movement report.
-
-## Settings
-
-- General settings.
-- Change password.
-
-Use reusable Blade components for:
-
-- Sidebar.
-- Header.
-- Buttons.
-- Form inputs.
-- Tables.
-- Summary cards.
-- Modals.
-- Alerts.
-- Pagination.
+- Change Password.
+- Current Password.
+- New Password.
+- Confirm Password.
+- Save Settings.
+
+## J. Shared UI Components
+
+Translate:
+
+- Save.
+- Update.
+- Edit.
+- Delete.
+- View.
+- Add.
+- Search.
+- Filter.
+- Reset.
+- Submit.
+- Cancel.
+- Close.
+- Confirm.
+- Back.
+- Next.
+- Previous.
+- Actions.
+- Status.
+- Date.
+- Amount.
+- Total.
+- Loading.
+- No Records Found.
+- Are you sure?
+- Operation successful.
+- Something went wrong.
+
+Translate:
+
+- Toast notifications.
+- Alert messages.
+- Confirmation modals.
 - Empty states.
-
-Do not duplicate the same UI logic across multiple pages unnecessarily.
+- Pagination labels.
+- Table messages.
+- Form validation errors.
+- Success and failure messages.
 
 ---
 
-# 18. Validation and User Experience
+# 9. Bangla Translation Quality
 
-Every form must have proper server-side validation.
+Use natural, simple, professional Bangla.
 
-Provide clear validation messages.
+The target user is a homeopathic chamber owner in Bangladesh.
+
+Avoid overly formal, complicated, or machine-translated language.
+
+Use familiar business terminology.
 
 Examples:
 
-- Medicine name is required.
-- Quantity must be greater than zero.
-- Purchase price cannot be negative.
-- Selling price cannot be negative.
-- Expense amount must be greater than zero.
-- Insufficient stock for this sale.
-- Invalid purchase or sale cancellation.
-- Duplicate or invalid transaction number.
+| English | Bangla |
+|---|---|
+| Dashboard | ড্যাশবোর্ড |
+| Medicines | ওষুধসমূহ |
+| Purchases | ক্রয় |
+| Sales | বিক্রয় |
+| Expenses | খরচ |
+| Reports | রিপোর্ট |
+| Settings | সেটিংস |
+| Medicine Name | ওষুধের নাম |
+| Quantity | পরিমাণ |
+| Purchase Price | ক্রয়মূল্য |
+| Selling Price | বিক্রয়মূল্য |
+| Current Stock | বর্তমান মজুত |
+| Minimum Stock | সর্বনিম্ন মজুত |
+| Low Stock | মজুত কম |
+| Out of Stock | মজুত শেষ |
+| Add Medicine | ওষুধ যোগ করুন |
+| Record Purchase | ক্রয়ের তথ্য যোগ করুন |
+| Record Sale | বিক্রয়ের তথ্য যোগ করুন |
+| Add Expense | খরচ যোগ করুন |
+| Total Sales | মোট বিক্রয় |
+| Total Purchases | মোট ক্রয় |
+| Gross Profit | মোট লাভ |
+| Net Operating Profit | নিট পরিচালন মুনাফা |
+| Cost of Goods Sold | বিক্রিত পণ্যের ক্রয়মূল্য |
+| Inventory Value | মজুতের মূল্য |
+| Expense Category | খরচের খাত |
+| Purchase Date | ক্রয়ের তারিখ |
+| Sale Date | বিক্রয়ের তারিখ |
+| Save | সংরক্ষণ করুন |
+| Update | হালনাগাদ করুন |
+| Cancel | বাতিল করুন |
+| Search | খুঁজুন |
+| Print | প্রিন্ট করুন |
+| Export | ডাউনলোড করুন |
+| Notes | মন্তব্য |
+| Description | বিবরণ |
+| Supplier Name | সরবরাহকারীর নাম |
 
-Use JavaScript for user convenience, but never rely on frontend validation alone.
+You may improve the translations if a more natural Bangla expression is available.
 
-Implement:
+Maintain terminology consistency throughout the application.
 
-- Search.
-- Pagination.
-- Date filters.
-- Category filters.
-- Confirmation dialogs.
-- Success notifications.
-- Error notifications.
-- Loading indicators where appropriate.
-- Form old-input preservation.
-- Empty states.
-- Responsive tables or mobile-friendly card layouts.
+Do not translate proper medicine names, potency values, technical medicine identifiers, or user-entered business records automatically.
 
-When creating a purchase or sale, calculate totals dynamically on the frontend, but independently calculate and validate all totals on the backend.
+For example:
+
+- Nux Vomica should remain Nux Vomica.
+- 30C should remain 30C.
+- 200C should remain 200C.
+- Medicine names entered by the owner should remain unchanged.
+
+Do not modify database records just to change the interface language.
 
 ---
 
-# 19. Security
+# 10. Bangla Typography and Compact UI
 
-Implement standard Laravel security practices.
+The Bangla interface must be compact and readable.
+
+Use an appropriate Bengali font.
+
+Preferred font:
+
+**Noto Sans Bengali**
+
+Use a reliable local font asset if possible, or an existing bundled font if the project already includes one.
+
+Avoid making the application dependent on an external font service.
+
+Example CSS approach:
+
+```css
+body {
+    font-family: "Noto Sans Bengali", "Hind Siliguri",
+                 sans-serif;
+}
+
+html[lang="en"] body {
+    font-family: "Inter", sans-serif;
+}
+```
+
+Adapt this to the existing CSS and font setup.
 
 Requirements:
 
-- Authentication middleware.
-- CSRF protection.
-- Input validation.
-- Output escaping.
-- Password hashing.
-- Login throttling.
-- Secure session configuration.
-- Mass-assignment protection.
-- Authorization checks.
-- Safe file export handling.
-- Secure environment configuration.
-- No exposed database credentials.
-- No committed `.env` file.
-- No hardcoded production secrets.
+- Proper Bangla glyph rendering.
+- Correct line height.
+- Readable font sizes.
+- Consistent button heights.
+- Compact table rows.
+- Proper spacing.
+- No overlapping text.
+- No clipped Bengali characters.
+- No unnecessary wrapping in the sidebar.
+- Responsive mobile navigation.
 
-Because the application is single-user, do not create public registration or multi-role authorization systems.
+Bangla text can be longer than English text. Adjust widths and spacing where necessary.
 
-All business data must be accessible only to the authenticated owner.
+The Bangla version should remain visually compact without sacrificing readability.
+
+Do not reduce text size excessively to fit the interface.
 
 ---
 
-# 20. Project Structure
+# 11. Date, Number, and Currency Localization
 
-Follow Laravel conventions.
+The application operates in Bangladesh.
 
-Suggested structure:
+Currency must remain:
 
-app/
-- Models/
-- Http/Controllers/
-- Http/Requests/
-- Services/
-- Support/
+`৳`
 
-app/Services/
-- InventoryService.php
-- PurchaseService.php
-- SalesService.php
-- ExpenseService.php
-- ReportService.php
+Do not change stored financial values.
 
-resources/views/
-- layouts/
-- components/
-- auth/
-- dashboard/
-- medicines/
-- purchases/
-- sales/
-- expenses/
-- reports/
-- settings/
+Display financial amounts consistently in both languages.
 
-database/
-- migrations/
-- seeders/
-- factories/
+Example:
 
-routes/
-- web.php
+English:
 
-tests/
-- Feature/
-- Unit/
+`৳1,250.00`
 
-You may improve the structure when appropriate, but keep it understandable and maintainable.
+Bangla:
 
----
+`৳১,২৫০.০০`
 
-# 21. Testing Requirements
+If Bengali numerals are implemented, use a centralized formatting helper or service.
 
-Do not consider the project complete just because the pages render.
+Do not convert numbers inside the database.
 
-Write automated tests for critical business logic.
+Do not convert numbers before calculations.
 
-At minimum, test:
+Calculations must always use normal numeric values.
 
-## Authentication
+Convert to localized display strings only at the presentation layer.
 
-- Guest cannot access dashboard.
-- Owner can log in.
-- Owner can log out.
-- Public registration is unavailable.
+Support localized date formatting.
 
-## Medicine
+Example:
 
-- Create medicine.
-- Update medicine.
-- Search medicine.
-- Different potencies remain separate.
-- Low-stock calculation works.
+English:
 
-## Purchases
+`15 November 2026`
 
-- Purchase increases stock.
-- Purchase totals are correct.
-- Multiple purchase items work.
-- Purchase cancellation reverses stock.
-- Repeated cancellation is rejected.
+Bangla:
 
-## Sales
+`১৫ নভেম্বর ২০২৬`
 
-- Sale decreases stock.
-- Sale totals are correct.
-- Insufficient stock is rejected.
-- Historical unit cost is preserved.
-- Sale cancellation restores stock.
-- Repeated cancellation is rejected.
+Ensure that HTML date inputs, form submissions, database dates, and JavaScript date calculations continue to work correctly.
 
-## Expenses
+Never pass localized Bengali numerals into database queries or arithmetic operations.
 
-- Expense creation works.
-- Expense category totals are correct.
-- Cancelled expenses are excluded.
-
-## Reports
-
-- COGS is correct.
-- Gross profit is correct.
-- Net operating profit is correct.
-- Date filters work.
-- Cancelled transactions are excluded.
-- Inventory valuation is correct.
-
-## Data integrity
-
-- Failed purchase transactions do not partially update stock.
-- Failed sales do not partially update stock.
-- Stock movement records match stock changes.
-- Historical reports remain stable after medicine prices change.
-
-Use a dedicated testing database. Never run destructive test commands against production data.
+The database should continue storing dates and numerical values in their existing formats.
 
 ---
 
-# 22. Deployment Readiness — Do Not Deploy Yet
+# 12. JavaScript and Dynamic UI Localization
 
-I may deploy this application later using a free hosting platform.
+Some parts of the application may generate text dynamically through JavaScript.
 
-Possible options include Render or another platform capable of running Laravel.
+These must also support both languages.
 
-Do not perform deployment now.
+Inspect all JavaScript files and Blade scripts.
 
-Do not assume Vercel is suitable for a conventional Laravel application.
+Examples:
 
-Make the project deployment-ready while keeping local development straightforward.
+- Dynamic purchase rows.
+- Dynamic sales rows.
+- Remove item confirmations.
+- Stock warnings.
+- Insufficient stock messages.
+- Form calculations.
+- Toast notifications.
+- Chart.js labels.
+- Chart.js tooltips.
+- Modal messages.
+- AJAX responses.
+- Loading indicators.
+
+Use a centralized JavaScript translation dictionary.
+
+For example, expose a safely serialized translation object from Blade:
+
+```javascript
+window.HPMS_LOCALE = {
+    locale: "bn",
+    messages: {
+        add_item: "...",
+        remove_item: "...",
+        insufficient_stock: "...",
+        confirm_cancel: "..."
+    }
+};
+```
+
+The actual values must come from Laravel translation files.
+
+Do not hardcode English strings throughout JavaScript.
+
+Ensure Chart.js charts update their labels when the language changes or are regenerated after the page reload.
+
+Avoid duplicating translation logic between PHP and JavaScript.
+
+---
+
+# 13. PDF, Excel, CSV, and Print Localization
+
+Localization must apply to exported documents too.
+
+When Bangla is selected:
+
+- PDF titles must be Bangla.
+- PDF table headings must be Bangla.
+- Report summary labels must be Bangla.
+- Excel column headings must be Bangla.
+- CSV headings must be Bangla where applicable.
+- Print reports must be Bangla.
+
+When English is selected, exports should remain in English.
+
+## PDF font support
+
+Inspect the existing PDF package and configuration.
+
+Ensure that the PDF renderer supports Bengali Unicode characters.
+
+Use an appropriate embedded Bengali font, preferably Noto Sans Bengali, if required.
+
+Do not assume that the default PDF font supports Bengali.
+
+Test actual PDF output for:
+
+- Bangla headings.
+- Bangla table columns.
+- Currency symbols.
+- Bengali numerals if enabled.
+- Long Bengali text.
+
+Avoid broken glyphs, missing characters, or disconnected Bengali letters.
+
+Keep exported documents readable and professional.
+
+---
+
+# 14. Backend and Validation Localization
+
+All backend-generated user-facing messages must follow the selected locale.
+
+Translate:
+
+- Validation errors.
+- Authentication errors.
+- Stock validation messages.
+- Purchase success messages.
+- Sale success messages.
+- Expense success messages.
+- Cancellation messages.
+- Database operation errors where shown to users.
+- Custom exception messages.
+- API/AJAX response messages, if applicable.
+
+Use Laravel's validation localization capabilities.
+
+Create or update the Bangla validation language file.
+
+Do not expose raw SQL errors or stack traces to users.
+
+Keep detailed technical errors in application logs.
+
+---
+
+# 15. Translation Rules for User-Entered Data
+
+This requirement is very important.
+
+Only translate the application interface.
+
+Do not automatically translate information manually entered by the owner.
+
+Examples of data that must remain unchanged:
+
+- Medicine names.
+- Potency.
+- Supplier names.
+- Medicine descriptions.
+- Purchase notes.
+- Sale notes.
+- Expense descriptions.
+- Custom category names.
+- Stock adjustment reasons.
+
+Do not modify existing database values.
+
+Do not run database-wide translation scripts.
+
+Do not overwrite manually entered records.
+
+If a user creates a custom category in Bangla, display it exactly as entered.
+
+If a user creates a custom category in English, display it exactly as entered.
+
+System-defined labels should use translation files; user-created content should remain untouched.
+
+---
+
+# 16. Routes and Middleware
+
+Implement a secure language-switching route.
+
+For example:
+
+```php
+POST /language
+```
+
+or an equivalent route following the existing route structure.
+
+The route should:
+
+1. Accept a locale.
+2. Validate it against `en` and `bn`.
+3. Update the authenticated owner's preference where supported.
+4. Update the session locale.
+5. Redirect back to the previous page safely.
+6. Preserve relevant query parameters where possible.
+
+Prevent open redirects.
+
+Implement locale middleware to apply the selected locale on subsequent requests.
+
+Register middleware using the correct mechanism for the installed Laravel version.
+
+Do not break existing authentication middleware, route groups, or CSRF protection.
+
+---
+
+# 17. Performance and Maintainability
+
+The localization feature must not significantly slow down the application.
 
 Requirements:
 
-- Correct Laravel production configuration.
-- Environment-based database configuration.
-- No hardcoded hostnames.
-- No local-only filesystem assumptions.
-- Correct storage configuration.
-- Correct asset build process.
-- Production-safe error handling.
-- Database migration support.
-- Health-check route if useful.
-- A documented deployment process.
-- A documented backup and restore process.
+- Load translation files efficiently.
+- Avoid unnecessary database queries on every page.
+- Cache stable translations if appropriate.
+- Do not request translations from external APIs.
+- Avoid duplicating translation strings.
+- Keep translation files organized.
+- Keep Blade templates readable.
+- Use reusable components.
 
-Keep the database layer compatible with MySQL.
+Do not create two separate copies of the entire website for English and Bangla.
 
-Do not silently replace MySQL with PostgreSQL or SQLite.
-
-Do not use local SQLite as the production database.
-
-Do not store important business data in temporary filesystem storage.
-
-Avoid requiring paid third-party services for core application functionality.
-
-Do not promise that free hosting will provide permanent database storage or production-grade availability. Hosting limitations must be reviewed separately before deployment.
+Maintain one application with one shared layout and translated strings.
 
 ---
 
-# 23. Documentation
+# 18. Testing Requirements
 
-Create a detailed `README.md`.
+After implementation, test both languages thoroughly.
 
-Include:
+## A. Language Switching
 
-- Project name and description.
-- Main features.
-- Technology stack.
-- Requirements.
-- Installation instructions.
-- Environment configuration.
-- Database creation.
-- Migration commands.
-- Seeder commands.
-- Local development commands.
-- Build commands.
-- Test commands.
-- Troubleshooting.
-- Security notes.
-- Backup and restore instructions.
-- Future deployment notes.
+- English to Bangla works.
+- Bangla to English works.
+- Current page is preserved.
+- Current query parameters are preserved where applicable.
+- Language preference survives navigation.
+- Language preference persists after logout/login for the owner.
+- Invalid locale values are rejected.
+- Guest login page can switch language.
 
-Also create:
-
-`docs/PROJECT_OVERVIEW.md`
-
-`docs/DATABASE_SCHEMA.md`
-
-`docs/BUSINESS_LOGIC.md`
-
-`docs/INSTALLATION.md`
-
-`docs/TESTING.md`
-
-Explain the accounting formulas and inventory valuation method clearly.
-
----
-
-# 24. Development Workflow — Follow These Phases
-
-Do not attempt to write the entire application blindly in one operation.
-
-Work incrementally.
-
-## Phase 1 — Inspect and Plan
-
-First inspect the existing HPMS directory.
+## B. Page Coverage
 
 Check:
 
-- Laravel version.
-- PHP version requirements.
-- Composer dependencies.
-- Node dependencies.
-- Existing migrations.
-- Existing models.
-- Existing routes.
-- Existing frontend assets.
-- Current project structure.
+- Login.
+- Dashboard.
+- Medicines.
+- Medicine creation/editing.
+- Categories.
+- Stock adjustment.
+- Purchases.
+- Purchase creation/details.
+- Sales.
+- Sale creation/details.
+- Expenses.
+- Expense creation/editing.
+- Reports.
+- PDF export.
+- Excel export.
+- CSV export.
+- Settings.
 
-Do not overwrite existing working code without understanding it.
+## C. UI Quality
 
-Then produce:
+Check:
 
-1. Project inspection summary.
-2. Implementation plan.
-3. Proposed database schema.
-4. Relationship overview.
-5. List of required packages.
-6. Potential compatibility issues.
+- Bangla font renders correctly.
+- Sidebar fits.
+- Header fits.
+- Buttons fit.
+- Tables remain readable.
+- Modals fit.
+- Mobile navigation works.
+- No text overlaps.
+- No English interface strings remain unintentionally.
 
-If the existing project is a fresh Laravel installation, proceed with the implementation.
+## D. Functional Regression
 
-If something important is missing or incompatible, explain it before making a destructive change.
+Ensure that the language feature does not break:
 
-## Phase 2 — Foundation
+- Login/logout.
+- CRUD operations.
+- Purchase calculations.
+- Sales calculations.
+- Inventory updates.
+- Stock movements.
+- Financial reports.
+- Date filtering.
+- Search and pagination.
+- PDF/Excel exports.
 
-Implement:
+## E. Automated Tests
 
-- Authentication.
-- Application layout.
-- Sidebar.
-- Header.
-- Responsive design.
-- Database migrations.
-- Models.
-- Seeders.
-- Default categories.
-- Initial owner setup.
+Add tests for:
 
-Verify login and navigation.
+- Locale switching.
+- Locale persistence.
+- Invalid locale rejection.
+- Guest language switching.
+- Translation rendering.
+- Business operations remaining functional in both locales.
 
-## Phase 3 — Medicine Inventory
-
-Implement:
-
-- Medicine CRUD.
-- Category management.
-- Search and filters.
-- Stock status.
-- Stock adjustments.
-- Stock movement ledger.
-
-Test all operations.
-
-## Phase 4 — Purchases
-
-Implement:
-
-- Purchase form.
-- Multiple purchase items.
-- Automatic totals.
-- Stock additions.
-- Purchase history.
-- Purchase details.
-- Purchase cancellation.
-
-Test stock calculations and reversals.
-
-## Phase 5 — Sales
-
-Implement:
-
-- Sales form.
-- Multiple sale items.
-- Automatic price retrieval.
-- Dynamic totals.
-- Weighted-average cost calculations.
-- Stock deduction.
-- Historical price preservation.
-- Sale history.
-- Sale cancellation.
-
-Test all accounting and inventory calculations.
-
-## Phase 6 — Expenses
-
-Implement:
-
-- Expense categories.
-- Expense CRUD.
-- Expense history.
-- Category filters.
-- Expense totals.
-
-## Phase 7 — Dashboard and Reports
-
-Implement:
-
-- Dashboard metrics.
-- Chart.js charts.
-- Daily reports.
-- Monthly reports.
-- Yearly reports.
-- Custom date reports.
-- Inventory reports.
-- Sales reports.
-- Expense reports.
-- Stock movement reports.
-- PDF and Excel/CSV exports.
-
-Verify the report calculations against manually calculated test examples.
-
-## Phase 8 — Quality Assurance
-
-Perform:
-
-- Automated tests.
-- Manual workflow checks.
-- Responsive layout checks.
-- Validation checks.
-- Authentication checks.
-- Database integrity checks.
-- Error handling checks.
-- Performance review.
-
-Fix discovered problems before declaring the application complete.
-
-## Phase 9 — Documentation and Handoff
-
-Finish:
-
-- README.
-- Technical documentation.
-- Database documentation.
-- Business logic documentation.
-- Installation guide.
-- Testing guide.
-
-Provide a final implementation summary.
+Run the existing test suite and fix any regressions.
 
 ---
 
-# 25. Acceptance Criteria
+# 19. Acceptance Criteria
 
-The application is complete only when all of the following are true:
+The feature is complete only when:
 
-1. The owner can log in securely.
-2. The owner can add and manage medicines.
-3. Different potencies are stored as separate inventory items.
-4. The owner can record a purchase.
-5. A purchase automatically increases stock.
-6. The owner can record a sale.
-7. A sale automatically decreases stock.
-8. The system prevents negative stock.
-9. The system records every stock movement.
-10. Historical purchase and sale prices are preserved.
-11. The owner can record other chamber expenses.
-12. The dashboard displays real financial data.
-13. Daily reports work.
-14. Monthly reports work.
-15. Yearly reports work.
-16. Custom date-range reports work.
-17. COGS is calculated correctly.
-18. Gross profit is calculated correctly.
-19. Net operating profit is calculated correctly.
-20. Inventory valuation is calculated correctly.
-21. Cancelled transactions are reversed correctly.
-22. PDF exports work.
-23. Excel/CSV exports work.
-24. The application is responsive.
-25. Automated tests cover the critical workflows.
-26. Documentation is complete.
-27. The project remains compatible with MySQL.
-28. No excluded features have been introduced.
+1. A compact language toggle exists in the sticky header.
+2. The toggle supports English and Bangla.
+3. The entire application interface changes language.
+4. All sidebar items are translated.
+5. All dashboard labels are translated.
+6. All forms are translated.
+7. All tables are translated.
+8. All buttons and modals are translated.
+9. All notifications are translated.
+10. Validation messages are translated.
+11. Charts are translated.
+12. Reports are translated.
+13. PDF exports support Bangla.
+14. Excel and CSV exports support Bangla headings.
+15. Print views support Bangla.
+16. The user's language preference is remembered.
+17. Switching languages does not change the current page.
+18. Existing business data remains unchanged.
+19. Existing business calculations continue to work.
+20. The Bangla UI is compact, readable, and responsive.
+21. The application works without external translation services.
+22. All relevant regression tests pass.
 
 ---
 
-# 26. Important Instructions to the Coding Agent
+# 20. Development Workflow
 
-- Work directly inside the existing `HPMS` Laravel project.
-- Do not create a nested Laravel project.
-- Do not replace Laravel with another framework.
-- Do not change the database from MySQL.
-- Do not introduce patient management.
-- Do not introduce online payments.
-- Do not introduce customer management.
-- Do not introduce employee or salary management.
-- Do not introduce unnecessary enterprise features.
-- Do not use hardcoded dashboard statistics.
-- Do not leave nonfunctional buttons.
-- Do not create fake sample transactions in production.
-- Do not silently modify historical financial records.
-- Do not silently alter stock.
-- Do not permanently delete completed transactions.
-- Do not skip backend validation.
-- Do not skip database transactions.
-- Do not skip automated tests.
-- Do not expose credentials.
-- Do not deploy the application without my separate instruction.
+Follow these steps.
 
-Prioritize correctness of inventory and financial calculations over visual complexity.
+### Phase 1 — Project Inspection
 
-The owner should be able to operate the application with minimal technical knowledge.
+Inspect the complete existing HPMS project.
 
-If a requirement is ambiguous, choose the simplest reliable implementation that preserves the stated business rules. Document the decision rather than introducing unnecessary features.
+Identify every source of visible text.
 
-When you finish each phase, summarize:
+Report the files and components that need localization.
 
-1. What you implemented.
-2. Which files you created or modified.
-3. Which migrations were added.
-4. Which tests were executed.
-5. Whether those tests passed.
-6. Any remaining issues.
+### Phase 2 — Localization Foundation
 
-Do not claim a feature is complete unless it has actually been implemented and verified.
+Implement:
 
-**Start now with Phase 1: inspect the existing HPMS project and produce the implementation plan. Then continue through the phases systematically.**
+- Locale configuration.
+- English translations.
+- Bangla translations.
+- Locale middleware.
+- Language switching route.
+- Persistent language preference.
+- Guest locale support.
+
+### Phase 3 — Header Integration
+
+Add the compact language toggle to the existing sticky header.
+
+Verify switching from multiple pages.
+
+### Phase 4 — Complete UI Translation
+
+Translate all application pages, shared components, forms, tables, alerts, modals, and notifications.
+
+### Phase 5 — Dynamic Content
+
+Translate JavaScript-generated messages, chart labels, tooltips, and dynamic form controls.
+
+### Phase 6 — Export Localization
+
+Implement and test Bangla support for PDF, Excel, CSV, and print output.
+
+### Phase 7 — Typography and Responsiveness
+
+Integrate Bengali fonts and adjust the UI for compact, readable Bangla rendering.
+
+### Phase 8 — Testing
+
+Test both locales and all existing application workflows.
+
+Fix every regression.
+
+### Phase 9 — Final Review
+
+Provide a summary of:
+
+1. Files created.
+2. Files modified.
+3. Migrations added.
+4. Translation coverage.
+5. Language persistence implementation.
+6. PDF font configuration.
+7. Automated tests executed.
+8. Test results.
+9. Any remaining untranslated strings or limitations.
+
+---
+
+# FINAL INSTRUCTIONS
+
+- Work inside the existing HPMS Laravel project.
+- Do not rebuild the application.
+- Do not replace the existing design.
+- Do not create separate English and Bangla websites.
+- Do not use Google Translate or external translation APIs.
+- Do not translate user-entered medicine or financial records.
+- Do not change existing database business data.
+- Do not break the existing inventory, sales, purchases, expenses, or reports.
+- Do not remove existing functionality.
+- Do not add unnecessary language settings pages.
+- Put the language toggle in the existing sticky header.
+- Make the Bangla interface compact and easy for a non-technical user.
+- Keep the application fully functional in both languages.
+- Do not deploy the application.
+
+**Start by inspecting the existing HPMS project and then implement the localization feature systematically. Do not stop after creating translation files; integrate and verify translations throughout the entire application.**

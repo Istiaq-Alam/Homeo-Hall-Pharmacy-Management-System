@@ -1,11 +1,22 @@
 import Alpine from 'alpinejs';
-import Chart from 'chart.js/auto';
 import './navigation';
 import './pwa';
 import './tables';
 
 window.Alpine = Alpine;
-window.Chart = Chart;
+
+// Chart.js is ~200 kB and only pages that render a chart need it, so it is
+// imported on demand instead of shipping in the bundle every page downloads.
+let Chart = null;
+const loadChartLibrary = async () => {
+    if (!Chart) {
+        const module = await import('chart.js/auto');
+        Chart = module.default;
+        window.Chart = Chart;
+    }
+
+    return Chart;
+};
 
 const themeTokens = () => getComputedStyle(document.documentElement);
 const themeColor = (token, fallback) => themeTokens().getPropertyValue(token).trim() || fallback;
@@ -36,6 +47,10 @@ const chartSeriesColors = (role, type, palette) => {
 };
 
 const paintCharts = () => {
+    if (!Chart) {
+        return;
+    }
+
     const palette = chartPalette();
     Chart.defaults.font.family = palette.font;
     Chart.defaults.font.size = 12;
@@ -65,9 +80,6 @@ const paintCharts = () => {
     });
 };
 
-Chart.defaults.font.family = "'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif";
-Chart.defaults.font.size = 12;
-Chart.defaults.color = themeColor('--t-muted', '#7a7a7a');
 document.addEventListener('themechange', paintCharts);
 new MutationObserver(paintCharts).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
@@ -134,8 +146,18 @@ document.addEventListener('alpine:init', () => {
 
 Alpine.start();
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-chart]').forEach((canvas) => {
+document.addEventListener('DOMContentLoaded', async () => {
+    const canvases = [...document.querySelectorAll('[data-chart]')].filter((canvas) => document.getElementById(canvas.dataset.chart));
+    if (!canvases.length) {
+        return;
+    }
+
+    await loadChartLibrary();
+    Chart.defaults.font.family = "'SF Pro Text', 'Inter', system-ui, -apple-system, sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = themeColor('--t-muted', '#6e6e73');
+
+    canvases.forEach((canvas) => {
         const chartData = document.getElementById(canvas.dataset.chart);
         if (!chartData) {
             return;

@@ -8,7 +8,7 @@
 <div class="dashboard-hero admin-dashboard-hero">
     <div>
         <p class="hero-eyebrow">Portfolio overview · {{ $monthLabel }} to date</p>
-        <h1>Every chamber, at a glance.</h1>
+        <h2 class="hero-title">Every chamber, at a glance.</h2>
         <p>Track sales performance, operating costs, inventory activity, and account access across your entire network.</p>
         <div class="hero-actions"><a class="button button-primary" href="#chamber-performance">View chamber performance</a><a class="button hero-outline" href="#create-account">Create an account</a></div>
     </div>
@@ -24,7 +24,7 @@
 
 <div class="card admin-performance-card" id="chamber-performance">
     <div class="section-title"><div><h2>Chamber performance</h2><p class="field-help">Sales, purchases, expenses, and estimated operating profit · {{ $monthLabel }} to date</p></div><span class="status status-completed">{{ $chambers->count() }} chambers</span></div>
-    <div class="table-wrap is-card-wrap"><table class="table is-card-table admin-performance-table"><thead><tr><th>Chamber</th><th>Owner · accounts</th><th class="numeric">Sales</th><th class="numeric">Revenue</th><th class="numeric">Purchases</th><th class="numeric">Expenses</th><th class="numeric">Est. net profit</th><th>Inventory</th><th>Action</th></tr></thead><tbody>
+    <div class="table-wrap is-card-wrap"><table class="table is-card-table admin-performance-table"><caption class="sr-only">Chamber performance for the current month</caption><thead><tr><th scope="col">Chamber</th><th scope="col">Owner · accounts</th><th scope="col" class="numeric">Sales</th><th scope="col" class="numeric">Revenue</th><th scope="col" class="numeric">Purchases</th><th scope="col" class="numeric">Expenses</th><th scope="col" class="numeric">Est. net profit</th><th scope="col">Inventory</th><th scope="col">Action</th></tr></thead><tbody>
         @forelse($chambers as $chamber)
             @php($owner = $chamber->users->first(fn ($account) => $account->isOwner()))
             <tr>
@@ -92,7 +92,7 @@
 
 <div class="card">
     <div class="section-title"><h2>All accounts</h2></div>
-    <div class="table-wrap is-card-wrap"><table class="table is-card-table"><thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Chamber</th><th>Actions</th></tr></thead><tbody>
+    <div class="table-wrap is-card-wrap"><table class="table is-card-table"><caption class="sr-only">All administrator, owner and staff accounts</caption><thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Email</th><th scope="col">Chamber</th><th scope="col">Actions</th></tr></thead><tbody>
         @foreach($users as $account)
             <tr>
                 <td data-label="Name"><strong>{{ $account->name }}</strong>@if($account->is(auth()->user())) <span class="status status-completed">You</span>@endif</td>
@@ -115,7 +115,7 @@
 
 <div class="card" id="security-log">
     <div class="section-title"><div><h2>Security log</h2><p class="field-help">Sign-ins, sign-outs, and account or credential changes · newest first</p></div><span class="status status-inactive">Last {{ $securityLogs->count() }} {{ \Illuminate\Support\Str::plural('event', $securityLogs->count()) }}</span></div>
-    <div class="table-wrap is-card-wrap"><table class="table is-card-table"><thead><tr><th>Event</th><th>Detail</th><th>Account</th><th>IP address</th><th>When</th></tr></thead><tbody>
+    <div class="table-wrap is-card-wrap"><table class="table is-card-table"><caption class="sr-only">Security events, newest first</caption><thead><tr><th scope="col">Event</th><th scope="col">Detail</th><th scope="col">Account</th><th scope="col">IP address</th><th scope="col">When</th></tr></thead><tbody>
         @forelse($securityLogs as $log)
             <tr>
                 <td data-label="Event"><span class="status {{ $log->badgeClass() }}">{{ $log->label() }}</span></td>

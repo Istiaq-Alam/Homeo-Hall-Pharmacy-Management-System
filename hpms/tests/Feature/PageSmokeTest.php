@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Chamber;
 use App\Models\ExpenseCategory;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\TransactionService;
+use App\Support\BrandAssets;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -114,13 +116,71 @@ class PageSmokeTest extends TestCase
             ->assertSee('brand-logo', false)
             ->assertSee($path, false);
 
+        $assets = json_decode((string) Setting::query()->where('key', 'chamber_brand_assets')->value('value'), true);
+
+        if (BrandAssets::supported()) {
+            $this->assertIsArray($assets);
+            $this->assertCount(16, $assets['splash']);
+
+            foreach (['mark', 'favicon32', 'favicon48', 'appleTouch', 'icon192', 'icon512', 'maskable192', 'maskable512'] as $key) {
+                Storage::disk('public')->assertExists($assets[$key]);
+            }
+
+            foreach ($assets['splash'] as $splash) {
+                Storage::disk('public')->assertExists($splash);
+            }
+
+            $this->actingAs($owner)->get('/dashboard')
+                ->assertOk()
+                ->assertSee($assets['favicon32'], false)
+                ->assertSee($assets['splash']['1290x2796'], false);
+        }
+
         $this->actingAs($owner)->put('/settings', [...$settings, 'remove_logo' => 1])->assertRedirect();
 
         $this->assertDatabaseMissing('settings', ['key' => 'chamber_logo']);
+        $this->assertDatabaseMissing('settings', ['key' => 'chamber_brand_assets']);
         Storage::disk('public')->assertMissing($path);
         $this->actingAs($owner)->get('/dashboard')
             ->assertOk()
             ->assertDontSee('brand-logo', false);
+    }
+
+    public function test_manifest_serves_the_chamber_generated_icons(): void
+    {
+        Storage::fake('public');
+        $chamber = Chamber::query()->create(['name' => 'Green Chamber']);
+        $owner = User::factory()->create(['chamber_id' => $chamber->id]);
+        $logo = UploadedFile::fake()->createWithContent(
+            'chamber-logo.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='),
+        );
+        $settings = [
+            'chamber_name' => 'Green Chamber',
+            'owner_name' => 'Administrator',
+            'currency' => 'BDT',
+            'currency_symbol' => '৳',
+            'timezone' => 'Asia/Dhaka',
+            'low_stock_default' => 5,
+            'report_default_days' => 30,
+        ];
+
+        $this->actingAs($owner)->put('/settings', [...$settings, 'chamber_logo' => $logo])->assertRedirect();
+
+        $icons = $this->actingAs($owner)->get('/manifest.webmanifest')->assertOk()->json('icons');
+        $this->assertCount(4, $icons);
+
+        if (! BrandAssets::supported()) {
+            $this->assertSame('/icons/icon-192.png', $icons[0]['src']);
+
+            return;
+        }
+
+        $this->assertStringContainsString('branding/', $icons[0]['src']);
+        $this->assertSame('192x192', $icons[0]['sizes']);
+        $this->assertSame('512x512', $icons[1]['sizes']);
+        $this->assertSame('maskable', $icons[2]['purpose']);
+        $this->assertStringContainsString('icon-maskable-512.png', $icons[3]['src']);
     }
 
     public function test_owner_can_upload_and_remove_a_profile_picture(): void

@@ -39,12 +39,12 @@
 </div>
 
 <div class="content-grid equal">
-    <div class="card"><div class="section-title"><h2>Monthly sales overview</h2><span class="status status-completed">Last 6 months</span></div><div class="chart-box"><canvas data-chart="sales-chart" data-type="line"></canvas></div></div>
-    <div class="card"><div class="section-title"><h2>Monthly expense overview</h2><span class="status status-completed">Last 6 months</span></div><div class="chart-box"><canvas data-chart="expenses-chart" data-type="bar"></canvas></div></div>
+    <div class="card"><div class="section-title"><h2>Monthly sales overview</h2><span class="status status-completed">Last 6 months</span></div><x-chart id="sales-chart" type="line" caption="Line chart of monthly sales for the last six months." :labels="$chart->pluck('label')" :series="['Sales' => $chart->pluck('sales')]" /></div>
+    <div class="card"><div class="section-title"><h2>Monthly expense overview</h2><span class="status status-completed">Last 6 months</span></div><x-chart id="expenses-chart" type="bar" caption="Bar chart of other monthly expenses for the last six months." :labels="$chart->pluck('label')" :series="['Other expenses' => $chart->pluck('expenses')]" /></div>
 </div>
 <div class="content-grid equal">
-    <div class="card"><div class="section-title"><h2>Sales vs purchases</h2><span class="status status-completed">Cash flow</span></div><div class="chart-box"><canvas data-chart="comparison-chart" data-type="bar"></canvas></div></div>
-    <div class="card"><div class="section-title"><h2>Monthly net profit trend</h2><span class="status status-completed">Net operating</span></div><div class="chart-box"><canvas data-chart="profit-chart" data-type="line"></canvas></div></div>
+    <div class="card"><div class="section-title"><h2>Sales vs purchases</h2><span class="status status-completed">Cash flow</span></div><x-chart id="comparison-chart" type="bar" caption="Bar chart comparing monthly sales and purchases for the last six months." :labels="$chart->pluck('label')" :series="['Sales' => $chart->pluck('sales'), 'Purchases' => $chart->pluck('purchases')]" /></div>
+    <div class="card"><div class="section-title"><h2>Monthly net profit trend</h2><span class="status status-completed">Net operating</span></div><x-chart id="profit-chart" type="line" caption="Line chart of monthly net operating profit for the last six months." :labels="$chart->pluck('label')" :series="['Net operating profit' => $chart->pluck('profit')]" /></div>
 </div>
 
 <div class="content-grid">

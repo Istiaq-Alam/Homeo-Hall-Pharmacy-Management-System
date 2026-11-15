@@ -542,6 +542,41 @@ The structural breakpoints that matter for agents: 1440px (content lock), 1068px
 - Product renders maintain their 1:1 or 4:3 aspect ratios across breakpoints; only scale changes.
 - Lazy-loading is default; the above-fold hero loads eagerly.
 
+## Theme System
+
+The product ships ten selectable themes (Apple, Cal, Intercom, Linear, Mintlify, Notion, Resend, SAP, Zapier, Starbucks). Apple is the default and keeps the component styles documented above unchanged; every other theme re-points one shared token set so new components theme themselves automatically.
+
+### Where themes live
+- `config/themes.php` — the gallery catalogue (slug, name, tagline, mode) shown on `/themes`.
+- `resources/css/app.css` — `[data-theme="<slug>"]` blocks declare the `--t-*` tokens; a single `html[data-theme]:not([data-theme="apple"])` block maps shared chrome onto them.
+- `users.theme` — the persisted choice; the layout writes it to `<html data-theme>`.
+- `resources/js/app.js` — chart series read their colours from the same tokens at paint time, so charts recolour on theme change without a reload.
+
+### Token contract
+| Token | Purpose |
+|-------|---------|
+| `--t-canvas` / `--t-surface` / `--t-surface-2` | Page, card and recessed backgrounds |
+| `--t-ink` / `--t-body` / `--t-muted` | Headline, body and meta text |
+| `--t-line` / `--t-line-soft` | Borders and table/chart gridlines |
+| `--t-accent` | Brand fill: primary buttons, chart series, focus ring |
+| `--t-accent-hover` | Hover fill for the accent |
+| `--t-on-accent` | Text/icon colour on an accent fill |
+| `--t-accent-text` | Accent used as text (nav active, secondary buttons, `Current` label) — a darker or lighter sibling of `--t-accent` chosen so it clears 4.5:1 |
+| `--t-accent-soft` / `--t-link` / `--t-link-hover` | Tinted backgrounds and link colours |
+| `--t-success-*` `--t-warn-*` `--t-danger-*` `--t-info-*` `--t-neutral-*` | Status badge background/ink pairs |
+| `--t-hero` / `--t-hero-ink` / `--t-hero-muted` / `--t-hero-accent` | Dark hero band |
+| `--t-radius` / `--t-radius-sm` / `--t-radius-btn` | Shape scale |
+| `--t-font` / `--t-tracking` / `--t-scheme` | Type stack, display tracking, `color-scheme` |
+| `--t-shadow-soft` / `--t-shadow-lift` / `--t-shadow-press` | Three-step elevation; dark themes carry a stronger drop plus an inset highlight |
+
+### Rules
+1. Components use `var(--t-*, <apple fallback>)` — never a literal hex — so a page renders correctly even before `data-theme` is applied.
+2. `--t-accent` is a fill, `--t-accent-text` is type. Never paint small text with `--t-accent`: brand oranges and teals rarely clear 4.5:1 on their own tint.
+3. Every theme's `--t-muted`, `--t-body` and `--t-accent-text` must clear 4.5:1 against its own canvas, surface and surface-2. Meta text is the first thing to fail when a palette is picked by eye.
+4. Dark themes (`linear`, `resend`) invert the shadow instead of dropping it — black-on-black reads as flat.
+5. Charts take semantic roles (`accent`, `neutral`, `positive`) and resolve them through `--t-accent`, `--t-muted`, `--t-success-ink` at paint time; no chart carries a fixed hex.
+6. Theme token values intentionally sit outside the Apple scale documented above (brand hues, 2–5px radii in the gallery's miniature previews, per-theme font tracking). Design-system linter hits on those values are expected; hits on layout, spacing or component structure are not.
+
 ## Iteration Guide
 
 1. Focus on ONE component at a time. Reference its YAML key directly (`{component.product-tile-dark}`, `{component.search-input}`).
@@ -560,3 +595,5 @@ The structural breakpoints that matter for agents: 1440px (content lock), 1068px
 - Dark-mode counterparts for store and accessories utility cards were not surfaced on the analyzed pages; the system documented is the daytime/light-dominant variant Apple ships by default.
 - Atmospheric photography (environment page mountain vista) is a content asset, not a design token; the documented `{component.environment-quote-card}` describes the structural surface only.
 - The exact backdrop-filter blur radius on `{component.sub-nav-frosted}` and `{component.floating-sticky-bar}` is platform-dependent; production CSS uses `saturate(180%) blur(20px)` as a typical baseline but the value isn't formalized as a token.
+- The ten theme palettes above the Apple default are derived from the brand analyses in `/themes`; the Theme System section documents the token contract they must satisfy, not each brand's full visual language.
+- Contrast in every theme is verified against canvas, surface and surface-2 for `--t-muted`, `--t-body` and `--t-accent-text` (last audited 2026-11-15). New themes need the same check before shipping.

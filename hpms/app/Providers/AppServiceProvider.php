@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Support\BrandAssets;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,12 @@ class AppServiceProvider extends ServiceProvider
             $settings = Setting::query()->pluck('value', 'key')->all();
             if (! empty($settings['chamber_logo'])) {
                 $settings['chamber_logo_url'] = Storage::disk('public')->url($settings['chamber_logo']);
+            }
+            if (! empty($settings['chamber_brand_assets'])) {
+                $assets = json_decode((string) $settings['chamber_brand_assets'], true);
+                if (is_array($assets)) {
+                    $settings['brand_assets'] = BrandAssets::urls($assets);
+                }
             }
             $view->with('appSettings', $settings);
         });

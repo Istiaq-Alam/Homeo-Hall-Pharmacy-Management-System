@@ -6,11 +6,13 @@ use App\Enums\UserRole;
 use App\Models\Chamber;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\BrandAssets;
 use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SettingsController extends Controller
@@ -48,15 +50,20 @@ class SettingsController extends Controller
 
         $oldLogo = Setting::query()->where('key', 'chamber_logo')->value('value');
         if ($request->hasFile('chamber_logo')) {
-            $newLogo = $request->file('chamber_logo')->store('branding', 'public');
+            $file = $request->file('chamber_logo');
+            $directory = 'branding/'.Str::lower(Str::random(12));
+            $extension = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'png');
+            $newLogo = $file->storeAs($directory, 'logo.'.$extension, 'public');
             if (! $newLogo) {
                 return back()->withErrors(['chamber_logo' => 'The logo could not be stored. Please try again.'])->withInput();
             }
             Setting::query()->updateOrCreate(['key' => 'chamber_logo'], ['value' => $newLogo]);
-            $this->deleteLogo($oldLogo);
+            $this->storeBrandAssets($newLogo, $directory);
+            BrandAssets::delete($oldLogo);
         } elseif ($request->boolean('remove_logo')) {
             Setting::query()->where('key', 'chamber_logo')->delete();
-            $this->deleteLogo($oldLogo);
+            Setting::query()->where('key', 'chamber_brand_assets')->delete();
+            BrandAssets::delete($oldLogo);
         }
 
         $user = $request->user();
@@ -104,11 +111,17 @@ class SettingsController extends Controller
         return back()->with('success', 'Password changed successfully.');
     }
 
-    private function deleteLogo(?string $path): void
+    private function storeBrandAssets(string $logoPath, string $directory): void
     {
-        if ($path && str_starts_with($path, 'branding/')) {
-            Storage::disk('public')->delete($path);
+        $assets = BrandAssets::generate(Storage::disk('public')->path($logoPath), $directory);
+
+        if ($assets === null) {
+            Setting::query()->where('key', 'chamber_brand_assets')->delete();
+
+            return;
         }
+
+        Setting::query()->updateOrCreate(['key' => 'chamber_brand_assets'], ['value' => json_encode($assets)]);
     }
 
     private function deleteAvatar(?string $path): void

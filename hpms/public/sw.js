@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'homeo-hall';
-const CACHE_VERSION = `${CACHE_PREFIX}-v1`;
+const CACHE_VERSION = `${CACHE_PREFIX}-v2`;
 const PRECACHE = [
     '/offline.html',
     '/icons/icon-192.png',
@@ -7,6 +7,7 @@ const PRECACHE = [
     '/icons/icon-maskable-192.png',
     '/icons/icon-maskable-512.png',
     '/icons/apple-touch-icon.png',
+    '/icons/brand-mark.png',
 ];
 
 self.addEventListener('install', (event) => {

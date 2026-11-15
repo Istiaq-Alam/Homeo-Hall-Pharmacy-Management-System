@@ -13,6 +13,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ThemeController;
 use App\Models\Setting;
+use App\Support\BrandAssets;
 use App\Support\ChamberContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -30,20 +31,29 @@ Route::get('/health', function () {
 
 Route::get('/manifest.webmanifest', function () {
     $name = 'Homeo-Hall';
+    $brand = [];
 
     try {
         $chamberId = app(ChamberContext::class)->id();
         if (Schema::hasTable('settings') && Schema::hasColumn('settings', 'chamber_id') && $chamberId !== null) {
-            $name = Setting::query()
+            $values = Setting::query()
                 ->withoutGlobalScope('chamber')
                 ->where('chamber_id', $chamberId)
-                ->where('key', 'chamber_name')
-                ->value('value') ?: $name;
+                ->whereIn('key', ['chamber_name', 'chamber_brand_assets'])
+                ->pluck('value', 'key');
+
+            $name = $values['chamber_name'] ?? $name;
+
+            $assets = json_decode((string) ($values['chamber_brand_assets'] ?? ''), true);
+            if (is_array($assets)) {
+                $brand = BrandAssets::urls($assets);
+            }
         }
     } catch (Throwable) {
         // Keep the install manifest available even when the database is temporarily down.
     }
 
+    $brandIcon = fn (string $key, string $fallback): string => $brand[$key] ?? $fallback;
     $shortName = mb_strlen($name) > 12 ? mb_substr($name, 0, 12).'…' : $name;
 
     return response()->json([
@@ -56,7 +66,7 @@ Route::get('/manifest.webmanifest', function () {
         'display' => 'standalone',
         'display_override' => ['standalone', 'minimal-ui'],
         'orientation' => 'any',
-        'background_color' => '#f5f5f7',
+        'background_color' => '#ffffff',
         'theme_color' => '#f5f5f7',
         'lang' => 'en',
         'dir' => 'ltr',
@@ -64,15 +74,15 @@ Route::get('/manifest.webmanifest', function () {
         'prefer_related_applications' => false,
         'launch_handler' => ['client_mode' => 'navigate-existing'],
         'icons' => [
-            ['src' => '/icons/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/icons/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/icons/icon-maskable-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
-            ['src' => '/icons/icon-maskable-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $brandIcon('icon512', '/icons/icon-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $brandIcon('maskable192', '/icons/icon-maskable-192.png'), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => $brandIcon('maskable512', '/icons/icon-maskable-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
         'shortcuts' => [
-            ['name' => 'Record a sale', 'short_name' => 'New sale', 'url' => '/sales/create', 'icons' => [['src' => '/icons/icon-192.png', 'sizes' => '192x192']]],
-            ['name' => 'Medicines', 'short_name' => 'Medicines', 'url' => '/medicines', 'icons' => [['src' => '/icons/icon-192.png', 'sizes' => '192x192']]],
-            ['name' => 'Reports', 'short_name' => 'Reports', 'url' => '/reports', 'icons' => [['src' => '/icons/icon-192.png', 'sizes' => '192x192']]],
+            ['name' => 'Record a sale', 'short_name' => 'New sale', 'url' => '/sales/create', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
+            ['name' => 'Medicines', 'short_name' => 'Medicines', 'url' => '/medicines', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
+            ['name' => 'Reports', 'short_name' => 'Reports', 'url' => '/reports', 'icons' => [['src' => $brandIcon('icon192', '/icons/icon-192.png'), 'sizes' => '192x192']]],
         ],
     ], 200, [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         ->header('Content-Type', 'application/manifest+json')
