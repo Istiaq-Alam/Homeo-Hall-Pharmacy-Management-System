@@ -3,7 +3,7 @@
 @section('content')
 <x-page-heading :title="__('manual.title')" :description="__('manual.description')">
     <x-slot:action>
-        <div class="heading-action manual-actions">
+        <div class="manual-actions">
             <a class="button button-secondary" href="{{ route('manual.pdf') }}" target="_blank" rel="noopener"><x-icon name="manual" /> {{ __('manual.open_new_tab') }}</a>
             <a class="button button-primary" href="{{ route('manual.download') }}"><x-icon name="download" /> {{ __('manual.download') }}</a>
         </div>
