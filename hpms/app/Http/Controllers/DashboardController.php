@@ -16,10 +16,13 @@ class DashboardController extends Controller
     public function __invoke(ReportService $reports): View
     {
         $today = CarbonImmutable::today(config('app.timezone'))->toDateString();
+        $currentMonth = CarbonImmutable::today(config('app.timezone'))->format('Y-m');
         $monthStart = CarbonImmutable::today(config('app.timezone'))->startOfMonth()->toDateString();
         $monthEnd = CarbonImmutable::today(config('app.timezone'))->endOfMonth()->toDateString();
+        $months = collect(range(5, 0))->map(fn (int $offset) => CarbonImmutable::today(config('app.timezone'))->startOfMonth()->subMonths($offset));
+        $monthSummaries = $reports->monthlySummaries($months->map(fn (CarbonImmutable $month): string => $month->format('Y-m'))->all());
         $daily = $reports->summary($today, $today);
-        $monthly = $reports->summary($monthStart, $monthEnd);
+        $monthly = $monthSummaries[$currentMonth] ?? $reports->summary($monthStart, $monthEnd);
         $daily['inventory_value'] = $monthly['inventory_value'];
         $metrics = [
             'medicines' => Medicine::query()->count(),
@@ -27,9 +30,8 @@ class DashboardController extends Controller
             'low_stock' => Medicine::query()->whereColumn('stock_quantity', '<=', 'minimum_stock')->where('stock_quantity', '>', 0)->count(),
             'out_of_stock' => Medicine::query()->where('stock_quantity', 0)->count(),
         ];
-        $months = collect(range(5, 0))->map(fn (int $offset) => CarbonImmutable::today(config('app.timezone'))->startOfMonth()->subMonths($offset));
-        $chart = $months->map(function (CarbonImmutable $month) use ($reports): array {
-            $data = $reports->summary($month->startOfMonth()->toDateString(), $month->endOfMonth()->toDateString());
+        $chart = $months->map(function (CarbonImmutable $month) use ($monthSummaries): array {
+            $data = $monthSummaries[$month->format('Y-m')] ?? ['sales' => 0, 'purchases' => 0, 'expenses' => 0, 'net_profit' => 0];
 
             return ['label' => localized_date($month, 'M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'profit' => $data['net_profit']];
         });

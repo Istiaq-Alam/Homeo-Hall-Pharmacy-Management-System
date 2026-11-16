@@ -40,12 +40,13 @@ class ReportController extends Controller
         $request->validate(['month' => ['nullable', 'date_format:Y-m']]);
         $month = CarbonImmutable::parse($request->input('month', now()->timezone(config('app.timezone'))->format('Y-m')))->startOfMonth();
         $range = ['from' => $month->toDateString(), 'to' => $month->endOfMonth()->toDateString()];
-        $summary = $reports->summary($range['from'], $range['to']);
-        $comparison = collect(range(5, 0))->map(function (int $offset) use ($month, $reports): array {
-            $period = $month->subMonths($offset);
-            $data = $reports->summary($period->toDateString(), $period->endOfMonth()->toDateString());
+        $periods = collect(range(5, 0))->map(fn (int $offset): string => $month->subMonths($offset)->format('Y-m'))->all();
+        $monthSummaries = $reports->monthlySummaries($periods);
+        $summary = $monthSummaries[$month->format('Y-m')];
+        $comparison = collect($periods)->map(function (string $period) use ($monthSummaries): array {
+            $data = $monthSummaries[$period];
 
-            return ['label' => localized_date($period, 'M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'cogs' => $data['cogs'], 'profit' => $data['net_profit']];
+            return ['label' => localized_date(CarbonImmutable::parse($period.'-01'), 'M Y'), 'sales' => $data['sales'], 'purchases' => $data['purchases'], 'expenses' => $data['expenses'], 'cogs' => $data['cogs'], 'profit' => $data['net_profit']];
         });
 
         return view('reports.monthly', compact('range', 'month', 'summary', 'comparison'));
@@ -55,11 +56,12 @@ class ReportController extends Controller
     {
         $request->validate(['year' => ['nullable', 'integer', 'between:2000,2100']]);
         $year = (int) $request->input('year', now()->timezone(config('app.timezone'))->year);
-        $months = collect(range(1, 12))->map(function (int $month) use ($year, $reports): array {
-            $date = CarbonImmutable::create($year, $month, 1);
-
-            return ['label' => localized_date($date, 'M'), ...$reports->summary($date->startOfMonth()->toDateString(), $date->endOfMonth()->toDateString())];
-        });
+        $periods = collect(range(1, 12))->map(fn (int $month): string => sprintf('%04d-%02d', $year, $month))->all();
+        $monthSummaries = $reports->monthlySummaries($periods);
+        $months = collect($periods)->map(fn (string $period): array => [
+            'label' => localized_date(CarbonImmutable::parse($period.'-01'), 'M'),
+            ...$monthSummaries[$period],
+        ]);
 
         return view('reports.yearly', compact('year', 'months'));
     }
