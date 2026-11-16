@@ -79,6 +79,8 @@ class PageSmokeTest extends TestCase
             '/reports/low-stock',
             '/reports/stock-movements',
             '/settings',
+            '/themes',
+            '/user-manual',
         ];
 
         foreach ($paths as $path) {

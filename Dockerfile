@@ -70,6 +70,7 @@ RUN chmod +x /usr/local/bin/entrypoint
 # Application code, production dependencies and compiled assets.
 COPY --from=vendor /app/vendor ./vendor
 COPY hpms/ .
+COPY docs/USER_MANUAL_BN.pdf ./docs/USER_MANUAL_BN.pdf
 COPY --from=assets /app/public/build ./public/build
 
 # Only writable runtime locations; everything else stays root-owned/read-only.

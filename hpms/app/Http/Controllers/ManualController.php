@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -23,7 +22,7 @@ class ManualController extends Controller
         ]);
     }
 
-    public function pdf(): Response
+    public function pdf(): BinaryFileResponse
     {
         $path = $this->pdfPath();
         abort_if($path === null, 404, __('manual.missing'));

@@ -35,6 +35,7 @@ class UserManualTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
 
-        $this->assertStringStartsWith('%PDF', $response->streamedContent());
+        $path = $response->baseResponse->getFile()->getPathname();
+        $this->assertStringStartsWith('%PDF', file_get_contents($path));
     }
 }

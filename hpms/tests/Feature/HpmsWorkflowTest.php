@@ -497,14 +497,14 @@ class HpmsWorkflowTest extends TestCase
         $owner = User::factory()->create();
         $medicine = $this->medicine();
         $medicine->forceFill(['stock_quantity' => 5, 'average_cost' => 2])->save();
-        $service = app(TransactionService::class);
 
-        $sale = $service->recordSale([
+        $this->actingAs($owner)->post('/sales', [
             'sale_date' => '2026-11-16',
             'payment_status' => 'unpaid',
             'items' => [['medicine_id' => $medicine->id, 'quantity' => 1, 'unit_price' => 5]],
-        ], $owner->id);
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
+        $sale = Sale::query()->latest('id')->firstOrFail();
         $this->assertSame('unpaid', $sale->payment_status);
         $this->assertNull($sale->paid_at);
         $this->actingAs($owner)->get('/sales/'.$sale->id)->assertOk()->assertSee('Unpaid');

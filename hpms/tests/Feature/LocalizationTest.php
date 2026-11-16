@@ -176,6 +176,19 @@ class LocalizationTest extends TestCase
             ->assertSee($this->bangla('expenses.amount'));
     }
 
+    public function test_unpaid_sales_and_the_user_manual_are_available_in_bangla(): void
+    {
+        $owner = User::factory()->create(['locale' => 'bn']);
+
+        $this->actingAs($owner)->get('/sales/create')->assertOk()
+            ->assertSee($this->bangla('sales.keep_unpaid'))
+            ->assertSee($this->bangla('sales.keep_unpaid_hint'));
+
+        $this->actingAs($owner)->get('/user-manual')->assertOk()
+            ->assertSee($this->bangla('navigation.user_manual'))
+            ->assertSee($this->bangla('manual.title'));
+    }
+
     public function test_settings_and_reports_screens_are_translated(): void
     {
         $chamber = Chamber::query()->create(['name' => 'Green Chamber']);
