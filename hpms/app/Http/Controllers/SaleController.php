@@ -15,11 +15,13 @@ class SaleController extends Controller
 {
     public function index(Request $request): View
     {
+        $paymentFilter = in_array($request->query('payment'), ['paid', 'unpaid'], true) ? $request->query('payment') : null;
         $sales = Sale::query()->withCount('items')
             ->when($request->filled('q'), fn ($query) => $query->where('sale_number', 'like', '%'.$request->q.'%'))
             ->when($request->filled('from'), fn ($query) => $query->whereDate('sale_date', '>=', $request->from))
             ->when($request->filled('to'), fn ($query) => $query->whereDate('sale_date', '<=', $request->to))
             ->when($request->filled('medicine'), fn ($query) => $query->whereHas('items', fn ($items) => $items->where('medicine_id', $request->integer('medicine'))))
+            ->when($paymentFilter, fn ($query) => $query->where('status', 'completed')->where('payment_status', $paymentFilter))
             ->latest('sale_date')->paginate(15)->withQueryString();
 
         return view('sales.index', ['sales' => $sales, 'medicines' => Medicine::query()->orderBy('name')->get(['id', 'name', 'potency'])]);
@@ -34,7 +36,7 @@ class SaleController extends Controller
     {
         $chamberId = app(ChamberContext::class)->id();
         $data = $request->validate([
-            'sale_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000'],
+            'sale_date' => ['required', 'date'], 'notes' => ['nullable', 'string', 'max:2000'], 'payment_status' => ['nullable', Rule::in(['paid', 'unpaid'])],
             'items' => ['required', 'array', 'min:1'], 'items.*.medicine_id' => ['required', 'distinct', Rule::exists('medicines', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'], 'items.*.unit_price' => ['required', 'numeric', 'min:0.01', 'max:9999999999.99'],
         ]);
         $sale = $transactions->recordSale($data, (int) $request->user()->id);
@@ -45,6 +47,13 @@ class SaleController extends Controller
     public function show(Sale $sale): View
     {
         return view('sales.show', ['sale' => $sale->load('items.medicine')]);
+    }
+
+    public function markPaid(Sale $sale, TransactionService $transactions): RedirectResponse
+    {
+        $transactions->markSalePaid($sale);
+
+        return back()->with('success', __('sales.flash.marked_paid'));
     }
 
     public function cancel(Request $request, Sale $sale, TransactionService $transactions): RedirectResponse

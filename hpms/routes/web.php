@@ -7,6 +7,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\ManualController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PurchaseController;
@@ -98,6 +99,9 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
     Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
     Route::post('/themes', [ThemeController::class, 'update'])->middleware('throttle:30,1')->name('themes.update');
+    Route::get('/user-manual', [ManualController::class, 'index'])->name('manual.index');
+    Route::get('/user-manual/pdf', [ManualController::class, 'pdf'])->name('manual.pdf');
+    Route::get('/user-manual/download', [ManualController::class, 'download'])->name('manual.download');
 
     Route::middleware('role:admin')->group(function (): void {
         Route::get('/admin', [AdminConsoleController::class, 'index'])->name('admin.index');
@@ -135,6 +139,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
         Route::get('/sales/medicine-price', [SaleController::class, 'price'])->name('sales.price');
         Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+        Route::post('/sales/{sale}/mark-paid', [SaleController::class, 'markPaid'])->name('sales.mark-paid');
         Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
 
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');

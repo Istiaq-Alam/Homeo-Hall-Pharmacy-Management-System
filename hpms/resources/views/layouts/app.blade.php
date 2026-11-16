@@ -39,6 +39,7 @@
                 <a href="{{ route('reports.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('reports.*') ? 'nav-active' : '' }}" @if(request()->routeIs('reports.*')) aria-current="page" @endif><span><x-icon name="report" /></span>{{ __('navigation.reports') }}</a>
                 <a href="{{ route('settings.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('settings.*') ? 'nav-active' : '' }}" @if(request()->routeIs('settings.*')) aria-current="page" @endif><span><x-icon name="settings" /></span>{{ __('navigation.settings') }}</a>
                 <a href="{{ route('themes.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('themes.*') ? 'nav-active' : '' }}" @if(request()->routeIs('themes.*')) aria-current="page" @endif><span><x-icon name="themes" /></span>{{ __('navigation.themes') }}</a>
+                <a href="{{ route('manual.index') }}" @click="menuOpen = false" class="nav-link {{ request()->routeIs('manual.*') ? 'nav-active' : '' }}" @if(request()->routeIs('manual.*')) aria-current="page" @endif><span><x-icon name="manual" /></span>{{ __('navigation.user_manual') }}</a>
             </nav>
             <div class="sidebar-bottom">
                 @if($layoutUser->isAdmin() && $layoutChamber)

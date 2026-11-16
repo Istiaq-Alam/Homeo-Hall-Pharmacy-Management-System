@@ -8,6 +8,7 @@ use App\Services\TransactionService;
 use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -35,9 +36,29 @@ class MedicineController extends Controller
         return view('medicines.form', ['medicine' => new Medicine, 'categories' => MedicineCategory::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, TransactionService $transactions): RedirectResponse
     {
-        $medicine = Medicine::create($this->validated($request));
+        $data = $this->validated($request);
+        $openingStock = (int) ($data['opening_stock'] ?? 0);
+        unset($data['opening_stock']);
+
+        $medicine = DB::transaction(function () use ($data, $openingStock, $request, $transactions): Medicine {
+            $medicine = Medicine::create($data);
+
+            if ($openingStock > 0) {
+                $transactions->recordPurchase([
+                    'purchase_date' => now()->toDateString(),
+                    'notes' => __('medicines.opening_stock_note'),
+                    'items' => [[
+                        'medicine_id' => $medicine->id,
+                        'quantity' => $openingStock,
+                        'unit_price' => (float) $medicine->purchase_price,
+                    ]],
+                ], (int) $request->user()->id);
+            }
+
+            return $medicine;
+        });
 
         return redirect()->route('medicines.show', $medicine)->with('success', __('medicines.flash.added'));
     }
@@ -98,7 +119,7 @@ class MedicineController extends Controller
     private function validated(Request $request, ?Medicine $medicine = null): array
     {
         $chamberId = app(ChamberContext::class)->id();
-        $data = $request->validate([
+        $rules = [
             'category_id' => ['required', Rule::exists('medicine_categories', 'id')->where(fn ($query) => $chamberId === null ? $query->whereNull('chamber_id') : $query->where('chamber_id', $chamberId))],
             'name' => ['required', 'string', 'max:150'],
             'potency' => ['nullable', 'string', 'max:50'],
@@ -109,7 +130,11 @@ class MedicineController extends Controller
             'minimum_stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'description' => ['nullable', 'string', 'max:4000'],
             'is_active' => ['sometimes', 'boolean'],
-        ]);
+        ];
+        if ($medicine === null) {
+            $rules['opening_stock'] = ['nullable', 'integer', 'min:0', 'max:1000000'];
+        }
+        $data = $request->validate($rules);
         $data['potency'] = trim((string) ($data['potency'] ?? ''));
 
         return $data;

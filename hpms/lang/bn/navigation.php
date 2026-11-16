@@ -10,4 +10,5 @@ return [
     'reports' => 'রিপোর্ট',
     'settings' => 'সেটিংস',
     'themes' => 'থিম',
+    'user_manual' => 'ব্যবহারকারীর নির্দেশিকা',
 ];

@@ -64,10 +64,13 @@ class TransactionService
     public function recordSale(array $data, int $userId): Sale
     {
         return DB::transaction(function () use ($data, $userId): Sale {
+            $paymentStatus = ($data['payment_status'] ?? 'paid') === 'unpaid' ? 'unpaid' : 'paid';
             $sale = Sale::create([
                 'sale_number' => $this->transactionNumber('SAL'),
                 'sale_date' => $data['sale_date'],
                 'notes' => $data['notes'] ?? null,
+                'payment_status' => $paymentStatus,
+                'paid_at' => $paymentStatus === 'paid' ? now() : null,
                 'user_id' => $userId,
                 'total_amount' => 0,
             ]);
@@ -155,6 +158,21 @@ class TransactionService
             $purchase->update(['status' => 'cancelled', 'cancellation_reason' => $reason, 'cancelled_at' => now()]);
 
             return $purchase;
+        });
+    }
+
+    public function markSalePaid(Sale $sale): Sale
+    {
+        return DB::transaction(function () use ($sale): Sale {
+            $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
+            if ($sale->status !== 'completed') {
+                throw ValidationException::withMessages(['payment_status' => __('sales.cannot_mark_cancelled')]);
+            }
+            if ($sale->payment_status === 'unpaid') {
+                $sale->forceFill(['payment_status' => 'paid', 'paid_at' => now()])->save();
+            }
+
+            return $sale;
         });
     }
 

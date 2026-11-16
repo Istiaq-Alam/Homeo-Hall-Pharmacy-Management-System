@@ -10,4 +10,5 @@ return [
     'reports' => 'Reports',
     'settings' => 'Settings',
     'themes' => 'Themes',
+    'user_manual' => 'User Manual',
 ];
