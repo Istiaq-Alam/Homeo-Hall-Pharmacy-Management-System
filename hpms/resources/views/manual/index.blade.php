@@ -23,7 +23,7 @@
     </div>
     <div class="manual-frame">
         <iframe
-            src="{{ route('manual.pdf') }}#view=FitH"
+            src="{{ route('manual.pdf') }}#view=Fit"
             title="{{ __('manual.viewer_title') }}"
             loading="eager"
             allowfullscreen
