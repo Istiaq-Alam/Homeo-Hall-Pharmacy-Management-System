@@ -202,7 +202,9 @@ Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets,
 ## Documentation
 
 - [`docs/SYSTEM_GUIDE.md`](docs/SYSTEM_GUIDE.md) — how every page works, the Laravel classes used, business formulas and database transactions.
+- [`docs/SYSTEM_GUIDE_Bn.md`](docs/SYSTEM_GUIDE_Bn.md) — ওই কারিগরি নির্দেশিকাটির বাংলা সংস্করণ।
 - [`docs/USER_MANUAL_BN.md`](docs/USER_MANUAL_BN.md) — সহজ বাংলায় ব্যবহার নির্দেশিকা (non-technical staff manual).
+- [`docs/USER_MANUAL_BN.pdf`](docs/USER_MANUAL_BN.pdf) — প্রিন্ট ও বিতরণের জন্য A4 PDF (১৬ পৃষ্ঠা)।
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
 - [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
 - [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
