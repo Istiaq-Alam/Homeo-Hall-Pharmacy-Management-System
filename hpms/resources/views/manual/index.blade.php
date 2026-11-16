@@ -1,12 +1,10 @@
 @extends('layouts.app')
 @section('title', __('manual.title'))
 @section('content')
-<x-page-heading :title="__('manual.title')" :description="__('manual.description')">
+<x-page-heading :title="__('manual.title')" :description="__('manual.description')" class="manual-page-heading" action-class="manual-actions">
     <x-slot:action>
-        <div class="manual-actions">
-            <a class="button button-secondary" href="{{ route('manual.pdf') }}" target="_blank" rel="noopener"><x-icon name="manual" /> {{ __('manual.open_new_tab') }}</a>
-            <a class="button button-primary" href="{{ route('manual.download') }}"><x-icon name="download" /> {{ __('manual.download') }}</a>
-        </div>
+        <a class="button button-secondary" href="{{ route('manual.pdf') }}" target="_blank" rel="noopener"><x-icon name="manual" /> {{ __('manual.open_new_tab') }}</a>
+        <a class="button button-primary" href="{{ route('manual.download') }}"><x-icon name="download" /> {{ __('manual.download') }}</a>
     </x-slot:action>
 </x-page-heading>
 
