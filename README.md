@@ -108,7 +108,7 @@ php artisan optimize:clear
 php artisan test --compact
 ```
 
-The suite uses an in-memory SQLite database configured by `phpunit.xml`. It never touches the MySQL development or production database. See [`hpms/docs/TESTING.md`](hpms/docs/TESTING.md).
+The suite uses an in-memory SQLite database configured by `phpunit.xml`. It never touches the MySQL development or production database. See [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Environment notes
 
@@ -163,7 +163,7 @@ A Docker/Render configuration is included but **nothing is deployed automaticall
 
 Key files: [`Dockerfile`](Dockerfile), [`docker/`](docker), [`render.yaml`](render.yaml), [`.env.production.example`](.env.production.example).
 
-Order of work (details and exact commands in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md)):
+Order of work (details and exact commands in [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md)):
 
 1. Push the repository to GitHub `main`.
 2. Create the TiDB Starter instance and `homeo_hall` database.
@@ -178,12 +178,12 @@ Free-tier realities: Render sleeps after ~15 minutes idle (~1 minute cold start)
 
 Documentation:
 
-- [`DEPLOYMENT_AUDIT.md`](DEPLOYMENT_AUDIT.md) — versions, compatibility findings, risks.
-- [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) — step-by-step manual deployment.
-- [`DATABASE_MIGRATION_GUIDE.md`](DATABASE_MIGRATION_GUIDE.md) — backup, import and verification.
-- [`FILE_STORAGE_MIGRATION_GUIDE.md`](FILE_STORAGE_MIGRATION_GUIDE.md) — moving uploads to R2.
-- [`BACKUP_AND_RESTORE.md`](BACKUP_AND_RESTORE.md) — production backups and restore drills.
-- [`DEPLOYMENT_TROUBLESHOOTING.md`](DEPLOYMENT_TROUBLESHOOTING.md) — 500/502, TLS, R2, sessions, PDFs.
+- [`docs/DEPLOYMENT_AUDIT.md`](docs/DEPLOYMENT_AUDIT.md) — versions, compatibility findings, risks.
+- [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) — step-by-step manual deployment.
+- [`docs/DATABASE_MIGRATION_GUIDE.md`](docs/DATABASE_MIGRATION_GUIDE.md) — backup, import and verification.
+- [`docs/FILE_STORAGE_MIGRATION_GUIDE.md`](docs/FILE_STORAGE_MIGRATION_GUIDE.md) — moving uploads to R2.
+- [`docs/BACKUP_AND_RESTORE.md`](docs/BACKUP_AND_RESTORE.md) — production backups and restore drills.
+- [`docs/DEPLOYMENT_TROUBLESHOOTING.md`](docs/DEPLOYMENT_TROUBLESHOOTING.md) — 500/502, TLS, R2, sessions, PDFs.
 
 Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets, and never run `migrate:fresh`, `db:wipe`, or an automatic rollback against production.
 
@@ -201,13 +201,14 @@ Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets,
 
 ## Documentation
 
-- [`hpms/docs/PROJECT_OVERVIEW.md`](hpms/docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
-- [`hpms/docs/DATABASE_SCHEMA.md`](hpms/docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
-- [`hpms/docs/BUSINESS_LOGIC.md`](hpms/docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
-- [`hpms/docs/INSTALLATION.md`](hpms/docs/INSTALLATION.md) — local setup and server checklist.
-- [`hpms/docs/TESTING.md`](hpms/docs/TESTING.md) — test coverage and manual QA.
-- [`DEPLOYMENT_AUDIT.md`](DEPLOYMENT_AUDIT.md) — deployment audit and compatibility findings.
-- [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) — Render, TiDB and R2 setup.
+- [`docs/SYSTEM_GUIDE.md`](docs/SYSTEM_GUIDE.md) — how every page works, the Laravel classes used, business formulas and database transactions.
+- [`docs/USER_MANUAL_BN.md`](docs/USER_MANUAL_BN.md) — সহজ বাংলায় ব্যবহার নির্দেশিকা (non-technical staff manual).
+- [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
+- [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
+- [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — local setup and server checklist.
+- [`docs/TESTING.md`](docs/TESTING.md) — test coverage and manual QA.
+- [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) — Render, TiDB and R2 setup.
 
 ## Limitations
 
