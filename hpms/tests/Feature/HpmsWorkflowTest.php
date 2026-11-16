@@ -458,6 +458,68 @@ class HpmsWorkflowTest extends TestCase
             ->assertSessionHasErrors('from');
     }
 
+    public function test_medicine_can_be_created_with_opening_stock_at_a_per_unit_cost(): void
+    {
+        $owner = User::factory()->create();
+        $category = MedicineCategory::query()->create(['name' => 'Dilution', 'is_active' => true]);
+
+        $this->actingAs($owner)->post('/medicines', [
+            'category_id' => $category->id,
+            'name' => 'Arnica Montana',
+            'potency' => '30C',
+            'form' => 'Liquid',
+            'unit' => 'Bottle',
+            'purchase_price' => 2,
+            'selling_price' => 5,
+            'minimum_stock' => 1,
+            'opening_stock' => 5,
+        ])->assertRedirect();
+
+        $medicine = Medicine::query()->where('name', 'Arnica Montana')->firstOrFail();
+        $this->assertSame(5, $medicine->stock_quantity);
+        $this->assertSame(2.0, (float) $medicine->average_cost);
+
+        $sale = app(TransactionService::class)->recordSale([
+            'sale_date' => '2026-11-16',
+            'items' => [['medicine_id' => $medicine->id, 'quantity' => 1, 'unit_price' => 5]],
+        ], $owner->id);
+
+        $summary = app(ReportService::class)->summary('2026-11-16', '2026-11-16');
+        $this->assertSame(5.0, $summary['sales']);
+        $this->assertSame(2.0, $summary['cogs']);
+        $this->assertSame(3.0, $summary['gross_profit']);
+        $this->assertSame(1, $sale->items()->value('quantity'));
+        $this->assertSame(4, $medicine->fresh()->stock_quantity);
+    }
+
+    public function test_a_sale_can_be_kept_unpaid_and_marked_paid_later(): void
+    {
+        $owner = User::factory()->create();
+        $medicine = $this->medicine();
+        $medicine->forceFill(['stock_quantity' => 5, 'average_cost' => 2])->save();
+        $service = app(TransactionService::class);
+
+        $sale = $service->recordSale([
+            'sale_date' => '2026-11-16',
+            'payment_status' => 'unpaid',
+            'items' => [['medicine_id' => $medicine->id, 'quantity' => 1, 'unit_price' => 5]],
+        ], $owner->id);
+
+        $this->assertSame('unpaid', $sale->payment_status);
+        $this->assertNull($sale->paid_at);
+        $this->actingAs($owner)->get('/sales/'.$sale->id)->assertOk()->assertSee('Unpaid');
+        $this->actingAs($owner)->get('/sales?payment=unpaid')->assertOk()->assertSee($sale->sale_number);
+
+        $this->actingAs($owner)->post('/sales/'.$sale->id.'/mark-paid')
+            ->assertRedirect()
+            ->assertSessionHas('success', __('sales.flash.marked_paid'));
+
+        $sale->refresh();
+        $this->assertSame('paid', $sale->payment_status);
+        $this->assertNotNull($sale->paid_at);
+        $this->actingAs($owner)->get('/sales?payment=unpaid')->assertOk()->assertDontSee($sale->sale_number);
+    }
+
     public function test_dashboard_displays_live_financial_data(): void
     {
         $owner = User::factory()->create();
