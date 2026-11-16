@@ -1,0 +1,222 @@
+@page {
+  size: A4;
+  margin: 20mm 18mm 20mm 18mm;
+  @bottom-left {
+    content: "হোমিও-হল · ব্যবহার নির্দেশিকা";
+    font-family: "Noto Sans Bengali", sans-serif;
+    font-size: 8pt;
+    color: #7a8a80;
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+  @bottom-right {
+    content: "পৃষ্ঠা " counter(page, bangla) " / " counter(pages, bangla);
+    font-family: "Noto Sans Bengali", sans-serif;
+    font-size: 8pt;
+    color: #7a8a80;
+    vertical-align: top;
+    padding-top: 4mm;
+  }
+}
+
+@page :first {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+@counter-style bangla {
+  system: numeric;
+  symbols: "০" "১" "২" "৩" "৪" "৫" "৬" "৭" "৮" "৯";
+}
+
+html {
+  font-family: "Noto Sans Bengali", sans-serif;
+  font-size: 10.6pt;
+  line-height: 1.72;
+  color: #1c2420;
+}
+
+body { margin: 0; }
+
+p { margin: 0 0 7pt; orphans: 2; widows: 2; }
+strong { font-weight: 700; color: #12231a; }
+
+/* ---------- Cover ---------- */
+.cover {
+  break-after: page;
+  position: relative;
+  height: 297mm;
+  background: linear-gradient(158deg, #f1f7ef 0%, #ffffff 48%, #e9f2ea 100%);
+  text-align: center;
+}
+.cover-brand {
+  position: absolute;
+  top: 36mm;
+  left: 0;
+  right: 0;
+}
+.cover img.cover-logo {
+  width: 122mm;
+}
+.cover-title {
+  position: absolute;
+  top: 116mm;
+  left: 20mm;
+  right: 20mm;
+}
+.cover .rule {
+  width: 40mm;
+  height: 1.3mm;
+  background: #2f6b46;
+  border-radius: 2mm;
+  margin: 0 auto 10mm;
+}
+.cover h1 {
+  font-size: 30pt;
+  line-height: 1.36;
+  font-weight: 700;
+  color: #14432c;
+  margin: 0 0 6mm;
+}
+.cover .cover-sub {
+  font-size: 12.5pt;
+  font-weight: 500;
+  color: #3c5244;
+  margin: 0;
+}
+.cover .cover-meta {
+  position: absolute;
+  bottom: 20mm;
+  left: 24mm;
+  right: 24mm;
+  font-size: 10pt;
+  color: #5b6f62;
+  border-top: 0.4pt solid #c9d8cd;
+  padding-top: 5mm;
+}
+/* ---------- Contents ---------- */
+#TOC {
+  break-after: page;
+}
+#TOC .toc-title {
+  font-size: 19pt;
+  color: #14432c;
+  margin: 0 0 8mm;
+  padding-bottom: 3mm;
+  border-bottom: 0.9pt solid #cfe0d6;
+  break-after: avoid;
+}
+#TOC ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#TOC > ul > li {
+  margin: 0 0 3.2pt;
+  break-inside: avoid;
+  font-size: 10.4pt;
+}
+#TOC a {
+  color: #1c2420;
+  text-decoration: none;
+}
+#TOC a::after {
+  content: leader(".") " " target-counter(attr(href), page, bangla);
+  color: #5b6f62;
+}
+
+/* ---------- Sections ---------- */
+main > h2 {
+  font-size: 17.5pt;
+  line-height: 1.42;
+  color: #14432c;
+  margin: 10mm 0 4.5mm;
+  padding-bottom: 2.6mm;
+  border-bottom: 1pt solid #cfe0d6;
+  break-after: avoid;
+}
+main > h2:first-of-type { margin-top: 0; }
+
+h3 {
+  font-size: 12.6pt;
+  color: #1d3b2a;
+  margin: 7mm 0 2.5mm;
+  break-after: avoid;
+}
+
+hr { display: none; }
+
+ul, ol { margin: 0 0 7pt; padding-left: 16pt; }
+li { margin: 0 0 3.6pt; padding-left: 1pt; }
+li::marker { color: #2f6b46; }
+
+blockquote {
+  margin: 4mm 0 6mm;
+  padding: 3.4mm 5mm;
+  background: #f1f7ee;
+  border-left: 2.4pt solid #2f6b46;
+  border-radius: 1.5mm;
+  break-inside: avoid;
+}
+blockquote p { margin: 0; font-size: 10.2pt; }
+
+code {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-size: 8.9pt;
+  background: #eef2ef;
+  padding: 0.4mm 1.2mm;
+  border-radius: 1mm;
+  color: #24402f;
+}
+
+/* ---------- Tables ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 3mm 0 7mm;
+  font-size: 9.4pt;
+  line-height: 1.55;
+}
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th {
+  background: #e4efe6;
+  color: #14432c;
+  text-align: left;
+  font-weight: 700;
+  padding: 2mm 2.6mm;
+  border: 0.4pt solid #c4d6c9;
+}
+td {
+  padding: 2mm 2.6mm;
+  border: 0.4pt solid #d5e0d8;
+  vertical-align: top;
+}
+tbody tr:nth-child(even) td { background: #fafcfa; }
+
+/* ---------- Screenshots ---------- */
+figure.shot {
+  margin: 6pt 0 13pt;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+figure.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 0.6pt solid #cbd9ce;
+  border-radius: 3pt;
+  background: #ffffff;
+}
+figure.shot figcaption {
+  margin-top: 4pt;
+  font-size: 8.4pt;
+  line-height: 1.5;
+  color: #56665d;
+  text-align: center;
+}
+figure.shot figcaption strong {
+  color: #2f6b46;
+  font-weight: 700;
+}

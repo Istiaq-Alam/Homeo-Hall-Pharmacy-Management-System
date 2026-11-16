@@ -204,13 +204,107 @@ Do not deploy with local credentials. Never commit `.env`, dumps, or R2 secrets,
 - [`docs/SYSTEM_GUIDE.md`](docs/SYSTEM_GUIDE.md) — how every page works, the Laravel classes used, business formulas and database transactions.
 - [`docs/SYSTEM_GUIDE_Bn.md`](docs/SYSTEM_GUIDE_Bn.md) — ওই কারিগরি নির্দেশিকাটির বাংলা সংস্করণ।
 - [`docs/USER_MANUAL_BN.md`](docs/USER_MANUAL_BN.md) — সহজ বাংলায় ব্যবহার নির্দেশিকা (non-technical staff manual).
-- [`docs/USER_MANUAL_BN.pdf`](docs/USER_MANUAL_BN.pdf) — প্রিন্ট ও বিতরণের জন্য A4 PDF (১৬ পৃষ্ঠা)।
+- [`docs/USER_MANUAL_BN.pdf`](docs/USER_MANUAL_BN.pdf) — প্রিন্ট ও বিতরণের জন্য A4 PDF (২৫ পৃষ্ঠা, পর্দার ছবিসহ)।
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) — scope, modules, structure.
 - [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — tables, relationships, precision.
 - [`docs/BUSINESS_LOGIC.md`](docs/BUSINESS_LOGIC.md) — formulas, average costing, cancellations.
 - [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — local setup and server checklist.
 - [`docs/TESTING.md`](docs/TESTING.md) — test coverage and manual QA.
 - [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) — Render, TiDB and R2 setup.
+
+### Rebuilding the Bangla manual PDF
+
+Edit [`docs/USER_MANUAL_BN.md`](docs/USER_MANUAL_BN.md), then run:
+
+```bash
+python3 docs/build_user_manual_pdf.py
+```
+
+The script regenerates `docs/USER_MANUAL_BN.pdf` with the cover page, contents page and house styling from `docs/manual/` (template, stylesheet, logo). Screenshots live in `docs/screenshots/`. It needs `pandoc`, WeasyPrint and the Noto Sans Bengali font; no database or app server is involved.
+
+## User Manual (English)
+
+A visual walkthrough of every screen for chamber owners and staff. The same content, with full Bangla explanations, is in [`docs/USER_MANUAL_BN.md`](docs/USER_MANUAL_BN.md) and the printable [`docs/USER_MANUAL_BN.pdf`](docs/USER_MANUAL_BN.pdf). All screenshots below come from a demo chamber; medicine names, dates and amounts will differ in your chamber, but the screens are the same.
+
+### Signing in
+
+![Sign-in screen with email, password and language switch](docs/screenshots/01-login.jpg)
+
+Open the chamber URL in Chrome, Edge, Firefox or Safari and enter the **email** and **password** your chamber owner or system admin created for you. Tick **Keep me signed in on this device** only on a personal computer. The **EN | বাংলা** switch at the top right changes the whole interface and is remembered on your account. Registration is not exposed, and there is no self-service password reset — ask the owner or admin. Five wrong attempts for the same email and IP within a minute trigger a short wait.
+
+### Dashboard
+
+![Dashboard with today's totals, monthly summary, charts and stock alerts](docs/screenshots/02-dashboard.jpg)
+
+The dashboard is the chamber at a glance: today's sales, purchases and other expenses, estimated gross profit (sales minus the cost of the medicines sold), estimated net profit (gross profit minus other expenses), total medicines, total stock units, low-stock and out-of-stock counts, and the value of stock on hand. Below it sit the current-month summary, four six-month charts, recent activity and stock alerts. The quick-action buttons jump straight to adding a medicine, purchase, sale or expense.
+
+### Medicines
+
+![Medicine list with search, filters and per-row actions](docs/screenshots/03-medicines.jpg)
+
+**Medicines** lists every medicine with its potency, category, type, unit, stock, prices and status. Search by name or potency, filter by category, type or stock state (low stock / out of stock), and sort by name, stock, price or date. Each row links to the medicine's detail page and to editing.
+
+![Add-medicine form](docs/screenshots/04-medicine-create.jpg)
+
+To add a medicine, choose **Add medicine** and fill in the name, potency, category, medicine type, unit, reorder level, purchase price and selling price, then save. There is deliberately no stock field: stock only moves through purchases, sales and stock adjustments, which keeps the ledger consistent. Each potency is a separate medicine — for example *Nux Vomica 30C* and *Nux Vomica 200C* are two records with separate stock.
+
+![Medicine detail with stock, average cost and movement history](docs/screenshots/05-medicine-show.jpg)
+
+The detail page shows current stock, weighted-average purchase cost, selling price, stock value and the complete stock-movement history, so every increase and decrease can be traced. Editing changes names, prices and categories but never stock. **Deactivate medicine** hides a medicine from new purchases and sales while keeping its history intact; categories work the same way and cannot be deleted.
+
+### Stock adjustments
+
+![Stock-adjustment form with reason field](docs/screenshots/06-adjustment.jpg)
+
+Use **Stock adjustment** only when the physical count does not match the system, or when stock is damaged or expired. Choose the medicine, whether stock increases or decreases, the quantity, the date and a **reason** (for example "counted less" or "broken bottle"); the reason is stored permanently. Stock can never go below zero.
+
+### Purchases
+
+![Purchase form with line items, supplier and automatic total](docs/screenshots/08-purchase-create.jpg)
+
+A purchase records medicines bought: date, optional supplier name, medicine, quantity and unit cost, with **Add item** for more lines and **Remove item** to drop a row. The line and purchase totals add up automatically. Saving raises each medicine's stock, recalculates its weighted-average cost and writes a purchase entry to the ledger.
+
+![Purchase list](docs/screenshots/07-purchases.jpg)
+
+The purchase list shows every purchase with its number, date, supplier and total; open a row to see its items. **Cancel purchase** requires a reason and reverses the stock, but is blocked when the purchased medicine has since been sold or adjusted — correct that sale or adjustment first, so historical profit stays accurate.
+
+### Sales
+
+![Sale form showing live stock and selling price](docs/screenshots/10-sale-create.jpg)
+
+A sale records medicines sold: date, medicine, quantity and unit selling price, with multiple lines and an automatic total. Choosing a medicine shows its current stock and price; the price can be changed for a discount and that price is what the reports use. You cannot sell more than the available stock. Saving reduces stock, freezes the average cost at the moment of sale (so later price changes never rewrite old profit) and writes a sale entry.
+
+![Sale detail with total, cost, profit and cancellation](docs/screenshots/11-sale-show.jpg)
+
+The sale detail shows the total, the cost of the goods at sale time, the profit, the units sold and the cancellation box. **Cancel sale** needs a reason and puts the stock back; a sale can only be cancelled once.
+
+### Expenses
+
+![Expense list with date, description, category and amount](docs/screenshots/12-expenses.jpg)
+
+**Expenses** records chamber running costs such as rent, electricity and internet, separately from medicine purchases. Each entry has a date, description, category and amount. Completed expenses can be edited; cancelled ones cannot. Manage the category list (for example "mobile recharge") from the expense-categories page.
+
+### Reports and exports
+
+![Report hub with report types, date range and export buttons](docs/screenshots/13-reports.jpg)
+
+**Reports** covers daily, monthly, yearly and custom date ranges plus inventory, medicine-wise sales, expenses, low stock and stock movement. Pick the report type, set the range (both the "from" and "to" days are included, using each transaction's own date), then export the same numbers as **PDF**, **Excel**, **CSV** or **Print**.
+
+![Daily report with revenue, cost, expenses and profit](docs/screenshots/14-report-daily.jpg)
+
+Every report shows sales revenue, purchases, the cost of goods sold, gross profit, operating expenses, net profit and units sold/purchased alongside stock value. The PDF export carries the chamber name and logo.
+
+### Settings, staff and backup
+
+![Settings page with chamber details, password, staff and data export](docs/screenshots/15-settings.jpg)
+
+Owners and admins can set the chamber logo (PNG/JPG/WebP, up to 2 MB; square images look best), chamber/app name, owner name, currency (BDT ৳), timezone (Asia/Dhaka), default low-stock level and default report period. Password changes need at least 12 characters and may sign you out on other devices. Only owners can create staff accounts (name, email, designation, 12+ character password) or remove them; removing an account keeps the chamber's history. **Download data export** produces a ZIP of CSV files without login details or passwords — useful for review, but not a full restore; take a MySQL dump for real backups (see [`docs/BACKUP_AND_RESTORE.md`](docs/BACKUP_AND_RESTORE.md)).
+
+### System administration
+
+![Administration console for the system admin](docs/screenshots/16-admin.jpg)
+
+The **Administration** page is visible only to the system admin: it manages chambers and accounts and shows figures across all chambers. Chamber owners and staff never see it.
 
 ## Limitations
 
