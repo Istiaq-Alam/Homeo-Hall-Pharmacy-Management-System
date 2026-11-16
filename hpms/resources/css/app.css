@@ -332,6 +332,7 @@ strong { font-weight: 600; }
 
 /* User manual viewer */
 .manual-viewer { width: min(100%, 940px); margin-inline: auto; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 18px; background: #fff; box-shadow: var(--t-shadow-soft, 0 1px 2px rgba(0, 0, 0, .06)); }
+.manual-actions { flex-wrap: wrap; }
 .manual-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; border-bottom: 1px solid #e0e0e0; background: #fafafc; }
 .manual-file { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .manual-file-icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 10px; background: #eaf3fc; color: #1764a6; }
@@ -342,10 +343,23 @@ strong { font-weight: 600; }
 .manual-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 .manual-fallback { margin: 0; padding: 11px 18px; border-top: 1px solid #e0e0e0; color: var(--t-muted, #6e6e73); font-size: 12px; }
 .manual-fallback a { color: #0066cc; }
-@media (max-width: 600px) {
+@media (max-width: 720px) {
+    .manual-viewer { border-radius: 14px; }
     .manual-toolbar { align-items: flex-start; flex-direction: column; gap: 9px; padding: 13px 14px; }
-    .manual-frame { width: 100%; min-height: 420px; margin-block: 12px; }
-    .manual-fallback { padding: 10px 14px; }
+    .manual-file { width: 100%; }
+    .manual-file-copy strong { max-width: 100%; }
+    .manual-frame { width: 100%; min-height: 420px; margin: 12px 0; border-radius: 8px; }
+    .manual-fallback { padding: 10px 14px; line-height: 1.5; }
+    .manual-actions { width: 100%; justify-content: stretch; }
+    .manual-actions .button { flex: 1 1 180px; }
+}
+@media (max-width: 420px) {
+    .manual-actions { flex-direction: column; align-items: stretch; }
+    .manual-actions .button { width: 100%; }
+    .manual-toolbar { padding: 12px; }
+    .manual-file-icon { width: 34px; height: 34px; }
+    .manual-file-copy strong { font-size: 13px; }
+    .manual-frame { min-height: 380px; }
 }
 
 /* Feedback and supporting blocks */
