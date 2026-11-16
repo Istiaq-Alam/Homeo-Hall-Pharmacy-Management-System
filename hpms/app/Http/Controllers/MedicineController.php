@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
+use App\Models\PurchaseItem;
 use App\Services\TransactionService;
 use App\Support\ChamberContext;
 use Illuminate\Http\RedirectResponse;
@@ -75,7 +76,19 @@ class MedicineController extends Controller
 
     public function update(Request $request, Medicine $medicine): RedirectResponse
     {
-        $medicine->update($this->validated($request, $medicine));
+        $data = $this->validated($request, $medicine);
+
+        DB::transaction(function () use ($medicine, $data): void {
+            $purchasePriceChanged = (float) $data['purchase_price'] !== (float) $medicine->purchase_price;
+            $medicine->update($data);
+
+            // Stock added through adjustments has no purchase ledger to derive a
+            // weighted average from, so keep its cost basis in step with the
+            // per-unit purchase price. Purchased stock keeps its actual average.
+            if ($purchasePriceChanged && ! PurchaseItem::query()->where('medicine_id', $medicine->id)->exists()) {
+                $medicine->forceFill(['average_cost' => (float) $medicine->purchase_price])->save();
+            }
+        });
 
         return redirect()->route('medicines.show', $medicine)->with('success', __('medicines.flash.updated'));
     }

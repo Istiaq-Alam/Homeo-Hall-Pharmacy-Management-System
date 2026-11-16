@@ -492,6 +492,70 @@ class HpmsWorkflowTest extends TestCase
         $this->assertSame(4, $medicine->fresh()->stock_quantity);
     }
 
+    public function test_editing_purchase_price_updates_cost_basis_when_stock_has_no_purchase_ledger(): void
+    {
+        $owner = User::factory()->create();
+        $medicine = $this->medicine('30C', ['purchase_price' => 600, 'selling_price' => 395]);
+        $this->actingAs($owner);
+
+        app(TransactionService::class)->adjustStock([
+            'medicine_id' => $medicine->id,
+            'adjustment_type' => 'increase',
+            'quantity' => 5,
+            'reason' => 'Opening count',
+            'adjustment_date' => '2026-11-16',
+        ], $owner->id);
+        $this->assertSame(600.0, (float) $medicine->fresh()->average_cost);
+
+        $this->put('/medicines/'.$medicine->id, [
+            'category_id' => $medicine->category_id,
+            'name' => $medicine->name,
+            'potency' => $medicine->potency,
+            'form' => $medicine->form,
+            'unit' => $medicine->unit,
+            'purchase_price' => 100,
+            'selling_price' => 150,
+            'minimum_stock' => 1,
+        ])->assertRedirect(route('medicines.show', $medicine));
+
+        $this->assertSame(100.0, (float) $medicine->fresh()->average_cost);
+
+        app(TransactionService::class)->recordSale([
+            'sale_date' => '2026-11-17',
+            'items' => [['medicine_id' => $medicine->id, 'quantity' => 1, 'unit_price' => 150]],
+        ], $owner->id);
+
+        $summary = app(ReportService::class)->summary('2026-11-17', '2026-11-17');
+        $this->assertSame(150.0, $summary['sales']);
+        $this->assertSame(100.0, $summary['cogs']);
+        $this->assertSame(50.0, $summary['gross_profit']);
+    }
+
+    public function test_editing_purchase_price_keeps_weighted_average_when_purchases_exist(): void
+    {
+        $owner = User::factory()->create();
+        $medicine = $this->medicine('30C', ['purchase_price' => 100, 'selling_price' => 150]);
+        $this->actingAs($owner);
+
+        app(TransactionService::class)->recordPurchase([
+            'purchase_date' => '2026-11-16',
+            'items' => [['medicine_id' => $medicine->id, 'quantity' => 5, 'unit_price' => 100]],
+        ], $owner->id);
+
+        $this->put('/medicines/'.$medicine->id, [
+            'category_id' => $medicine->category_id,
+            'name' => $medicine->name,
+            'potency' => $medicine->potency,
+            'form' => $medicine->form,
+            'unit' => $medicine->unit,
+            'purchase_price' => 120,
+            'selling_price' => 150,
+            'minimum_stock' => 1,
+        ])->assertRedirect(route('medicines.show', $medicine));
+
+        $this->assertSame(100.0, (float) $medicine->fresh()->average_cost);
+    }
+
     public function test_a_sale_can_be_kept_unpaid_and_marked_paid_later(): void
     {
         $owner = User::factory()->create();
